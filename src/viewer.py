@@ -1,61 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import coords
+import game
 import json
 import os
 import sys
 import wx
 import wx.lib.newevent
-
-class Game(object):
-    def __init__(self):
-        w = 8
-        h = 10
-        self.size = w, h
-        self.board = []
-        for y in range(0, h):
-            self.board.append(w * [''])
-        for y in range(h - 1, h - 5, -1):
-            for x in range(0, w):
-                self.board[y][x] = 'F'
-        self.unit_pos = (0, 0)
-        ox, oy = self.unit_pos
-        self.board[oy + 0][ox + 0] = 'U'
-        self.board[oy + 0][ox + 1] = 'U'
-        self.board[oy + 1][ox + 0] = 'U'
-        print self.board
-
-    def move(self, command):
-        x, y = self.unit_pos
-        if (command == 'E'):
-            self._setUnitPos(x + 1, y)
-        elif (command == 'W'):
-            self._setUnitPos(x - 1, y)
-        elif (command == 'SE'):
-            if y % 2 == 0:
-                self._setUnitPos(x, y + 1)
-            else:
-                self._setUnitPos(x + 1, y + 1)
-        elif (command == 'SW'):
-            if y % 2 == 0:
-                self._setUnitPos(x - 1, y + 1)
-            else:
-                self._setUnitPos(x, y + 1)
-
-    def at(self, x, y):
-        return self.board[y][x]
-
-    def _setUnitPos(self, x, y):
-        ox, oy = self.unit_pos
-        self.board[oy + 0][ox + 0] = ''
-        self.board[oy + 0][ox + 1] = ''
-        self.board[oy + 1][ox + 0] = ''
-        self.unit_pos = (x, y)
-        ox, oy = self.unit_pos
-        self.board[oy + 0][ox + 0] = 'U'
-        self.board[oy + 0][ox + 1] = 'U'
-        self.board[oy + 1][ox + 0] = 'U'
-        print self.board
 
 # Main window title
 TITLE = 'Chtuhlu Fhtagn'
@@ -164,11 +116,9 @@ class Viewer(wx.Frame):
         self.Load(board_path, commands_path)
 
     def Load(self, board_path, commands_path):
-#        self.game = game.Game()
-        self.game = Game()
-#        f = open(board_path)
-#        self.game.load_file(f)
-#        f.close()
+        unit = game.Unit((1,1), [(0,0), (1,0), (0,1)])
+        board = game.Board(10, 10, [(1, 1)])
+        self.game = game.Game(board, unit)
         try:
             with open(commands_path) as cf:
                 solutions = json.loads(cf.read())
@@ -260,13 +210,20 @@ class Viewer(wx.Frame):
                 "t": "CCW",
                 "u": "CCW",
                 "w": "CCW",
-                "x": "CCW"}
-        return dirs[c]
+                "x": "CCW"
+        }
+        coord_dirs = {
+            "W": coords.DIRECTION_W,
+            "E": coords.DIRECTION_E,
+            "SE": coords.DIRECTION_SE,
+            "SW": coords.DIRECTION_SW
+        }
+        return coord_dirs[dirs[c]]
 
     def Run(self, steps):
         print self._game_step, self._commands[self._game_step:]
         while steps > 0 and self._game_step < len(self._commands):
-            self.game.move(self.DirectionFromCommand(self._commands[self._game_step]))
+            self.game.move_unit(self.DirectionFromCommand(self._commands[self._game_step]))
             self._game_step += 1
             steps -= 1
         if self._game_running:
@@ -312,10 +269,10 @@ class Canvas(wx.ScrolledWindow):
         if parent.game is not None:
             for y in range(self._yw):
                 for x in range(self._xw):
-                    obj = parent.game.at(x, y)
-                    cols = {'': wx.Colour(40, 40, 40, 255),
-                            'F': wx.Colour(20, 20, 255, 255),
-                            'U': wx.Colour(255, 20, 20, 255)}
+                    obj = parent.game.cell(x, y)
+                    cols = {game.CELL_EMPTY: wx.Colour(40, 40, 40, 255),
+                            game.CELL_FILLED: wx.Colour(20, 20, 255, 255),
+                            game.CELL_UNIT: wx.Colour(255, 20, 20, 255)}
                     col = cols[obj]
                     p = self.CalcScrolledPosition((x*32 + 16 * (y % 2), y*27))
                     gc.SetPen(wx.Pen(wx.Colour(0, 0, 0, 255), 1))

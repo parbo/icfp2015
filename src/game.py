@@ -62,17 +62,17 @@ class Unit(object):
         self.members = members
 
     def __contains__(self, cell):
-        return cell in members
+        return cell in self.members
 
     def move(self, direction):
         pivot = coords.move(self.pivot, direction)
-        members = [coords.move(member, direction) for member in members]
+        members = [coords.move(member, direction) for member in self.members]
         return Unit(pivot, members)
 
 class Game(object):
-    def __init__(self, board):
+    def __init__(self, board, unit):
         self.board = board
-        self.unit = None
+        self.unit = unit
 
     def cell(self, col, row):
         if self.unit is not None:
@@ -82,7 +82,11 @@ class Game(object):
             return CELL_FILLED
         else:
             return CELL_EMPTY
-        
+
+    @property
+    def size(self):
+        return (self.board.width, self.board.height)
+
     def move_unit(self, direction):
         if self.unit is None:
             return
