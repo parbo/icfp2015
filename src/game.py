@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import coords
+import json
 
 CELL_EMPTY = ''
 CELL_FILLED = 'F'
@@ -70,9 +71,12 @@ class Unit(object):
         return Unit(pivot, members)
 
 class Game(object):
-    def __init__(self, board, unit):
+    def __init__(self, board, units, seed):
         self.board = board
-        self.unit = unit
+        self.units = units
+        self.curr_unit = 0
+        self.unit = self.units[self.curr_unit]
+        self.seed = seed
 
     def cell(self, col, row):
         if self.unit is not None:
@@ -91,6 +95,26 @@ class Game(object):
         if self.unit is None:
             return
         self.unit = self.unit.move(direction)
+
+def jc2t(coord):
+    """Convert a json coordinate to a (x, y) tuple."""
+    return (coord["x"], coord["y"])
+
+class Problem(object):
+    def __init__(self, problem):
+        self.height = problem["height"]
+        self.width = problem["width"]
+        self.source_seeds = problem["sourceSeeds"]
+        self.units = [Unit(jc2t(u["pivot"]), [jc2t(m) for m in u["members"]]) for u in problem["units"]]
+        self.filled = [jc2t(f) for f in problem["filled"]]
+
+    def make_game(self, seed_index):
+        return Game(Board(self.width, self.height, self.filled), self.units, self.source_seeds[seed_index])
+
+    @staticmethod
+    def load(filename):
+        with open(filename) as pf:
+            return Problem(json.load(pf))
 
 if __name__ == '__main__':
     board = Board(10, 10, [(1, 1)])

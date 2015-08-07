@@ -116,9 +116,12 @@ class Viewer(wx.Frame):
         self.Load(board_path, commands_path)
 
     def Load(self, board_path, commands_path):
-        unit = game.Unit((1,1), [(0,0), (1,0), (0,1)])
-        board = game.Board(10, 10, [(1, 1)])
-        self.game = game.Game(board, unit)
+        if board_path:
+            self.game = game.Problem.load(board_path).make_game(0)
+        else:
+            units = [game.Unit((1,1), [(0,0), (1,0), (0,1)])]
+            board = game.Board(10, 10, [(1, 1)])
+            self.game = game.Game(board, units, 17)
         try:
             with open(commands_path) as cf:
                 solutions = json.loads(cf.read())
