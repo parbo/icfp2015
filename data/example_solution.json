@@ -1,0 +1,12 @@
+[
+  { "problemId": 1,
+    "seed":      17,
+    "tag":       "blah1",
+    "solution":  "pbal'ehn"
+  },
+  { "problemId": 1,
+    "seed":      12,
+    "tag":       "blah2",
+    "solution":  "pbal'ehn"
+  }
+]

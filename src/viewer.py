@@ -1,5 +1,7 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import json
 import os
 import sys
 import wx
@@ -30,9 +32,15 @@ class Game(object):
         elif (command == 'W'):
             self._setUnitPos(x - 1, y)
         elif (command == 'SE'):
-            self._setUnitPos(x, y + 1)
+            if y % 2 == 0:
+                self._setUnitPos(x, y + 1)
+            else:
+                self._setUnitPos(x + 1, y + 1)
         elif (command == 'SW'):
-            self._setUnitPos(x - 1, y + 1)
+            if y % 2 == 0:
+                self._setUnitPos(x - 1, y + 1)
+            else:
+                self._setUnitPos(x, y + 1)
 
     def at(self, x, y):
         return self.board[y][x]
@@ -124,7 +132,7 @@ class Viewer(wx.Frame):
         self._commands = []
         # load file if there
         if board_file:
-            self.Load(board_file)
+            self.Load(board_file, commands_file)
         # Show window.
         self.Move((10, 10))
         self.Show()
@@ -152,14 +160,24 @@ class Viewer(wx.Frame):
     def OnLoadBtn(self, event):
         #print 'OnLoadBtn'
         board_path = self._board_input.GetValue()
-        self.Load(board_path)
+        commands_path = self._commands_input.GetValue()
+        self.Load(board_path, commands_path)
 
-    def Load(self, board_path):
+    def Load(self, board_path, commands_path):
 #        self.game = game.Game()
         self.game = Game()
 #        f = open(board_path)
 #        self.game.load_file(f)
 #        f.close()
+        try:
+            with open(commands_path) as cf:
+                solutions = json.loads(cf.read())
+                # For now, just use the first one
+                self._commands = [x for x in solutions[0]["solution"]]
+        except IOError:
+            print "Commands file not found"
+            pass
+
         self._game_step = 0
         w, h = self.game.size
         self._canvas.SetBoardSize(w, h)
@@ -193,23 +211,62 @@ class Viewer(wx.Frame):
             return
         kc = event.GetKeyCode()
         if kc == ord('E'):
-             self.MakeMove('E')
+             self.MakeMove('b')
         elif kc == ord('W'):
-            self.MakeMove('W')
+            self.MakeMove('p')
         elif kc == ord('S'):
-            self.MakeMove('SW')
+            self.MakeMove('a')
         elif kc == ord('D'):
-            self.MakeMove('SE')
+            self.MakeMove('l')
         else:
             event.Skip()
 
     def AcceptsFocus(self):
         return True
 
+    def DirectionFromCommand(self, c):
+        dirs = {"p": "W",
+                "'": "W",
+                "!": "W",
+                ".": "W",
+                "0": "W",
+                "3": "W",
+                "b": "E",
+                "c": "E",
+                "e": "E",
+                "f": "E",
+                "y": "E",
+                "2": "E",
+                "a": "SW",
+                "g": "SW",
+                "h": "SW",
+                "i": "SW",
+                "j": "SW",
+                "4": "SW",
+                "l": "SE",
+                "m": "SE",
+                "n": "SE",
+                "o": "SE",
+                " ": "SE",
+                "5": "SE",
+                "d": "CW",
+                "q": "CW",
+                "r": "CW",
+                "v": "CW",
+                "z": "CW",
+                "1": "CW",
+                "k": "CCW",
+                "s": "CCW",
+                "t": "CCW",
+                "u": "CCW",
+                "w": "CCW",
+                "x": "CCW"}
+        return dirs[c]
+
     def Run(self, steps):
         print self._game_step, self._commands[self._game_step:]
         while steps > 0 and self._game_step < len(self._commands):
-            self.game.move(self._commands[self._game_step])
+            self.game.move(self.DirectionFromCommand(self._commands[self._game_step]))
             self._game_step += 1
             steps -= 1
         if self._game_running:
