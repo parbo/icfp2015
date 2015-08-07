@@ -246,7 +246,10 @@ class Viewer(wx.Frame):
 
     def UpdateStatusBar(self):
         bar = self.GetStatusBar()
-        bar.SetStatusText("TODO!", 0)
+        score = 0
+        if self.game:
+            score = self.game.score
+        bar.SetStatusText("Score: %d"%(score,), 0)
 
 class Canvas(wx.ScrolledWindow):
     def __init__(self, parent):

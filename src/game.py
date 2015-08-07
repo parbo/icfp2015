@@ -44,6 +44,11 @@ class Board(object):
             self.cells[row] = self.cells[row - 1]
         self.cells[0] = self.create_empty_row()
 
+    def lock(self, cells):
+        for c in cells:
+            col, row = c
+            self.cells[row][col] = True
+
     def position(self, origin, direction):
         """
         Calculates a new position given a current position and the direction of movement.
@@ -70,13 +75,38 @@ class Unit(object):
         members = [coords.move(member, direction) for member in self.members]
         return Unit(pivot, members)
 
+def lcg(seed):
+    modulus = 2**32
+    multiplier = 1103515245
+    increment = 12345
+    curr = seed
+    while True:
+        new = (multiplier * curr + increment) % modulus
+        yield (curr >> 16) & 0x7fff
+        curr = new
+
 class Game(object):
     def __init__(self, board, units, seed):
         self.board = board
         self.units = units
-        self.curr_unit = 0
-        self.unit = self.units[self.curr_unit]
-        self.seed = seed
+        self.rnd = lcg(seed)
+        self.ls_old = 0
+        self.score = 0
+        self.next_unit()
+
+    def next_unit(self):
+        self.curr_unit = self.rnd.next() % len(self.units)
+        unit = self.units[self.curr_unit]
+        # TODO: center it
+        print unit.pivot, unit.members
+        if self.is_unit_valid(unit):
+            self.unit = unit
+        else:
+            self.unit = None
+        print "unit: ", self.unit
+
+    def is_unit_valid(self, unit):
+        return all((self.is_valid_pos(p) for p in unit.members))
 
     def cell(self, col, row):
         if self.unit is not None:
@@ -91,10 +121,43 @@ class Game(object):
     def size(self):
         return (self.board.width, self.board.height)
 
+    def is_valid_pos(self, pos):
+        x, y = pos
+        if x < 0:
+            return False
+        elif x >= self.board.width:
+            return False
+        if y < 0:
+            return False
+        elif y >= self.board.height:
+            return False
+        elif self.board.filled_cell(x, y):
+            return False
+        return True
+
     def move_unit(self, direction):
         if self.unit is None:
             return
-        self.unit = self.unit.move(direction)
+        unit = self.unit.move(direction)
+        if self.is_unit_valid(unit):
+            self.unit = unit
+        else:
+            self.board.lock(self.unit.members)
+            ls = 0
+            row = self.board.height - 1
+            while row > 0:
+                if self.board.filled_row(row):
+                    ls += 1
+                    self.board.clear_row(row)
+                else:
+                    row -= 1
+            points = len(self.unit.members) + 100 * (1 + ls) * ls / 2
+            line_bonus = 0
+            if self.ls_old > 1:
+                line_bonus = math.floor((self.ls_old - 1) * points / 10)
+            self.ls_old = ls
+            self.score = self.score + points + line_bonus
+            self.next_unit()
 
 def jc2t(coord):
     """Convert a json coordinate to a (x, y) tuple."""
