@@ -179,6 +179,7 @@ def jc2t(coord):
 
 class Problem(object):
     def __init__(self, problem):
+        self.id = problem["id"]
         self.height = problem["height"]
         self.width = problem["width"]
         self.source_seeds = problem["sourceSeeds"]
