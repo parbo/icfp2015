@@ -97,13 +97,27 @@ class Game(object):
     def next_unit(self):
         self.curr_unit = self.rnd.next() % len(self.units)
         unit = self.units[self.curr_unit]
-        # TODO: center it
-        print unit.pivot, unit.members
+        # Center unit (TODO: move this code to unit)
+        left_most = None
+        right_most = None
+        top = None
+        for m in unit.members:
+            x, y = m
+            if left_most is None or x < left_most:
+                left_most = x
+            if right_most is None or x > right_most:
+                right_most = x
+            if top is None or y < top:
+                top = y
+        w = right_most - left_most + 1
+        start = (self.board.width - w) / 2
+        for i in range(left_most, start):
+            unit = unit.move(coords.DIRECTION_E)
+        # Now it should be centered
         if self.is_unit_valid(unit):
             self.unit = unit
         else:
             self.unit = None
-        print "unit: ", self.unit
 
     def is_unit_valid(self, unit):
         return all((self.is_valid_pos(p) for p in unit.members))
