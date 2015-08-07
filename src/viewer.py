@@ -126,7 +126,9 @@ class Viewer(wx.Frame):
             with open(commands_path) as cf:
                 solutions = json.loads(cf.read())
                 # For now, just use the first one
-                self._commands = [x for x in solutions[0]["solution"]]
+                solution = solutions[0]["solution"]
+                print solution
+                self._commands = [x for x in solution]
         except IOError:
             print "Commands file not found"
             pass
@@ -228,6 +230,7 @@ class Viewer(wx.Frame):
         while steps > 0 and self._game_step < len(self._commands):
             self.game.move_unit(self.DirectionFromCommand(self._commands[self._game_step]))
             self._game_step += 1
+            print self._commands[:self._game_step], self.game.unit
             steps -= 1
         if self._game_running:
             if self._game_step < len(self._commands):
