@@ -5,6 +5,50 @@ import sys
 import wx
 import wx.lib.newevent
 
+class Game(object):
+    def __init__(self):
+        w = 8
+        h = 10
+        self.size = w, h
+        self.board = []
+        for y in range(0, h):
+            self.board.append(w * [''])
+        for y in range(h - 1, h - 5, -1):
+            for x in range(0, w):
+                self.board[y][x] = 'F'
+        self.unit_pos = (0, 0)
+        ox, oy = self.unit_pos
+        self.board[oy + 0][ox + 0] = 'U'
+        self.board[oy + 0][ox + 1] = 'U'
+        self.board[oy + 1][ox + 0] = 'U'
+        print self.board
+
+    def move(self, command):
+        x, y = self.unit_pos
+        if (command == 'E'):
+            self._setUnitPos(x + 1, y)
+        elif (command == 'W'):
+            self._setUnitPos(x - 1, y)
+        elif (command == 'SE'):
+            self._setUnitPos(x, y + 1)
+        elif (command == 'SW'):
+            self._setUnitPos(x - 1, y + 1)
+
+    def at(self, x, y):
+        return self.board[y][x]
+
+    def _setUnitPos(self, x, y):
+        ox, oy = self.unit_pos
+        self.board[oy + 0][ox + 0] = ''
+        self.board[oy + 0][ox + 1] = ''
+        self.board[oy + 1][ox + 0] = ''
+        self.unit_pos = (x, y)
+        ox, oy = self.unit_pos
+        self.board[oy + 0][ox + 0] = 'U'
+        self.board[oy + 0][ox + 1] = 'U'
+        self.board[oy + 1][ox + 0] = 'U'
+        print self.board
+
 # Main window title
 TITLE = 'Chtuhlu Fhtagn'
 
@@ -77,6 +121,7 @@ class Viewer(wx.Frame):
         self.game = None
         self._game_running = False
         self._game_step = 0
+        self._commands = []
         # load file if there
         if board_file:
             self.Load(board_file)
@@ -111,11 +156,12 @@ class Viewer(wx.Frame):
 
     def Load(self, board_path):
 #        self.game = game.Game()
-        f = open(board_path)
+        self.game = Game()
+#        f = open(board_path)
 #        self.game.load_file(f)
+#        f.close()
         self._game_step = 0
-        f.close()
-        w, h = 8, 10 # TODO self.game.size
+        w, h = self.game.size
         self._canvas.SetBoardSize(w, h)
         self.UpdateStatusBar()
 
@@ -146,38 +192,28 @@ class Viewer(wx.Frame):
             event.Skip()
             return
         kc = event.GetKeyCode()
-        # TODO
-        # if kc == wx.WXK_DOWN:
-        #     self.MakeMove(game.MOVE_DOWN)
-        # elif kc == wx.WXK_UP:
-        #     self.MakeMove(game.MOVE_UP)
-        # elif kc == wx.WXK_LEFT:
-        #     self.MakeMove(game.MOVE_LEFT)
-        # elif kc == wx.WXK_RIGHT:
-        #     self.MakeMove(game.MOVE_RIGHT)
-        # elif kc == ord('s'):
-        #     self.Run(int(self._step_input.GetValue()))
-        # elif kc == ord('w'):
-        #     self.MakeMove(game.MOVE_WAIT)
-        # elif kc == ord('a'):
-        #     self.MakeMove(game.MOVE_ABORT)
-        # elif kc == ord('r'):
-        #     self.MakeMove(game.MOVE_SHAVE)
-        # else:
-        #     event.Skip()
-        event.skip()
+        if kc == ord('E'):
+             self.MakeMove('E')
+        elif kc == ord('W'):
+            self.MakeMove('W')
+        elif kc == ord('S'):
+            self.MakeMove('SW')
+        elif kc == ord('D'):
+            self.MakeMove('SE')
+        else:
+            event.Skip()
 
     def AcceptsFocus(self):
         return True
 
     def Run(self, steps):
-#        print self._game_step, self._commands[self._game_step:]
-        while steps > 0 and self._game_step < len(commands):
-#            self.game = self.game.move(self._commands[self._game_step])
+        print self._game_step, self._commands[self._game_step:]
+        while steps > 0 and self._game_step < len(self._commands):
+            self.game.move(self._commands[self._game_step])
             self._game_step += 1
             steps -= 1
         if self._game_running:
-            if self._game_step < len(commands):
+            if self._game_step < len(self._commands):
                 self.AddPendingEvent(RunSimEvent(id=ID_RUN_EVENT))
             else:
                 self._run_btn.SetLabel('Run')
@@ -187,9 +223,8 @@ class Viewer(wx.Frame):
         self.UpdateStatusBar()
 
     def MakeMove(self, move):
-        commands = self._commands_input.GetValue()
-        commands = commands[0:self._game_step] + move + commands[self._game_step:]
-        self._commands_input.SetValue(commands)
+        commands = self._commands
+        self._commands = commands[0:self._game_step] + [move] + commands[self._game_step:]
         self.Run(1)
 
     def UpdateStatusBar(self):
@@ -216,21 +251,34 @@ class Canvas(wx.ScrolledWindow):
         gc = wx.GraphicsContext.Create(dc);
         gc.SetFont(wx.FontFromPixelSize((12,12), wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD), wx.WHITE)
         parent = self.GetParent()
+        print parent.game
         if parent.game is not None:
-            pass
+            for y in range(self._yw):
+                for x in range(self._xw):
+                    obj = parent.game.at(x, y)
+                    cols = {'': wx.Colour(40, 40, 40, 255),
+                            'F': wx.Colour(20, 20, 255, 255),
+                            'U': wx.Colour(255, 20, 20, 255)}
+                    col = cols[obj]
+                    p = self.CalcScrolledPosition((x*32 + 16 * (y % 2), y*27))
+                    gc.SetPen(wx.Pen(wx.Colour(0, 0, 0, 255), 1))
+                    gc.SetBrush(wx.Brush(col))
+                    px, py = p
+                    points = [(px, py + 9), (px + 16, py), (px + 32, py + 9), (px + 32, py + 27), (px + 16, py + 36), (px, py + 27)]
+                    gc.DrawLines(points)
 
     def SetBoardSize(self, xw, yw):
         self._xw = xw
         self._yw = yw
-        self._xp = 16 * xw
-        self._yp = 16 * yw
+        self._xp = 32 * (xw + 1)
+        self._yp = 27 * (yw + 1)
         self.UpdateBoardSize()
 
     def UpdateBoardSize(self):
         # Size in world coordinates.
         self.SetClientSize((self._xp, self._yp))
         self.SetScrollbars(1, 1, self._xp, self._yp)
-        self.SetScrollRate(16, 16)
+        self.SetScrollRate(32, 32)
         self.Refresh()
 
 if __name__ == '__main__':
