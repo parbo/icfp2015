@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+FILENAME=$1
+
+curl --user :gaCOxN3q3tIF34wz+b+HAHK/ML5rKUYjPMIwDOPnKKg= -X POST -H "Content-Type: application/json" -d @$FILENAME https://davar.icfpcontest.org/teams/51/solutions
