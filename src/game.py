@@ -86,15 +86,20 @@ def lcg(seed):
         curr = new
 
 class Game(object):
-    def __init__(self, board, units, seed):
+    def __init__(self, board, units, max_units, seed):
         self.board = board
         self.units = units
+        self.max_units = max_units
+        self.num_units = 0
         self.rnd = lcg(seed)
         self.ls_old = 0
         self.score = 0
         self.next_unit()
 
     def next_unit(self):
+        if self.num_units == self.max_units:
+            self.unit = None
+            return
         self.curr_unit = self.rnd.next() % len(self.units)
         unit = self.units[self.curr_unit]
         # Center unit (TODO: move this code to unit)
@@ -116,6 +121,7 @@ class Game(object):
         # Now it should be centered
         if self.is_unit_valid(unit):
             self.unit = unit
+            self.num_units += 1
         else:
             self.unit = None
 
@@ -183,11 +189,12 @@ class Problem(object):
         self.height = problem["height"]
         self.width = problem["width"]
         self.source_seeds = problem["sourceSeeds"]
+        self.source_length = problem["sourceLength"]
         self.units = [Unit(jc2t(u["pivot"]), [jc2t(m) for m in u["members"]]) for u in problem["units"]]
         self.filled = [jc2t(f) for f in problem["filled"]]
 
     def make_game(self, seed_index):
-        return Game(Board(self.width, self.height, self.filled), self.units, self.source_seeds[seed_index])
+        return Game(Board(self.width, self.height, self.filled), self.units, self.source_length, self.source_seeds[seed_index])
 
     @staticmethod
     def load(filename):
