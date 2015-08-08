@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import coords
 import game
+import hx
 import json
 import os
 import sys
@@ -217,10 +217,10 @@ class Viewer(wx.Frame):
                 "x": "CCW"
         }
         coord_dirs = {
-            "W": coords.DIRECTION_W,
-            "E": coords.DIRECTION_E,
-            "SE": coords.DIRECTION_SE,
-            "SW": coords.DIRECTION_SW
+            "W": hx.DIRECTION_W,
+            "E": hx.DIRECTION_E,
+            "SE": hx.DIRECTION_SE,
+            "SW": hx.DIRECTION_SW
         }
         return coord_dirs[dirs[c]]
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import coords
+import hx
 import json
 
 CELL_EMPTY = ''
@@ -36,6 +36,10 @@ class Board(object):
     def filled_cell(self, col, row):
         return self.cells[row][col]
 
+    def filled_hex(self, h):
+        col, row = hx.to_offset(h)
+        return self.filled_cell(col, row)
+
     def filled_row(self, row):
         return all(self.cells[row])
 
@@ -54,7 +58,7 @@ class Board(object):
         Calculates a new position given a current position and the direction of movement.
         Raises LookupError if the new position is invalid.
         """
-        row, col = coords.move(origin, direction)
+        col, row = hx.offset_move(origin, direction)
         if (0 < col < self.width) and (0 < row < self.height):
             return (col, row)
         raise LookupError('Invalid position: (%d, %d)' % (col, row))
@@ -71,9 +75,13 @@ class Unit(object):
         return cell in self.members
 
     def move(self, direction):
-        pivot = coords.move(self.pivot, direction)
-        members = [coords.move(member, direction) for member in self.members]
+        pivot = hx.offset_move(self.pivot, direction)
+        members = [hx.offset_move(member, direction) for member in self.members]
         return Unit(pivot, members)
+
+    def rotate(self, direction):
+        members = [hx.offset_rotate(self.pivot, member, direction) for member in self.members]
+        return Unit(self.pivot, members)
 
 def lcg(seed):
     modulus = 2**32
@@ -117,7 +125,7 @@ class Game(object):
         w = right_most - left_most + 1
         start = (self.board.width - w) / 2
         for i in range(left_most, start):
-            unit = unit.move(coords.DIRECTION_E)
+            unit = unit.move(hx.DIRECTION_E)
         # Now it should be centered
         if self.is_unit_valid(unit):
             self.unit = unit

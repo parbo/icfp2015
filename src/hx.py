@@ -28,6 +28,15 @@ def rotate(pivot, h, direction):
     else:
         return hex_add(pivot, Hex(-vect.y, -vect.z, -vect.x))
 
+def offset_move(cell, direction):
+    h = to_hex(*cell)
+    return to_offset(move(h, direction))
+
+def offset_rotate(pivot, cell, direction):
+    hp = to_hex(*pivot)
+    h = to_hex(*cell)
+    return to_offset(rotate(hp, h, direction))
+
 def to_offset(h):
     col = h.x + (h.z - (h.z % 2)) / 2
     row = h.z

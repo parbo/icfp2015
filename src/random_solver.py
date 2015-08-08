@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 import argparse
-import coords
 import game
+import hx
 import json
 import random
 
@@ -23,7 +23,7 @@ if __name__=="__main__":
             random.seed(seed)
             g = problem.make_game(seed_index)
             commands = []
-            dirs = [coords.DIRECTION_SE, coords.DIRECTION_SW]
+            dirs = ['SE', 'SW']
             cmds = ['l', 'a']
             while True:
                 ix = random.randint(0, 1)

@@ -2,8 +2,8 @@
 
 import unittest
 
-import coords
 import game
+import hx
 
 class TestBoard(unittest.TestCase):
     def test_filled_cell(self):
@@ -30,19 +30,19 @@ class TestBoard(unittest.TestCase):
         board = game.Board(5, 5)
         origin = (0, 0)
         with self.assertRaises(LookupError):
-            board.position(origin, coords.DIRECTION_W)
+            board.position(origin, hx.DIRECTION_W)
         with self.assertRaises(LookupError):
-            board.position(origin, coords.DIRECTION_SW)
+            board.position(origin, hx.DIRECTION_SW)
         origin = (4, 1)
         with self.assertRaises(LookupError):
-            board.position(origin, coords.DIRECTION_E)
+            board.position(origin, hx.DIRECTION_E)
         with self.assertRaises(LookupError):
-            board.position(origin, coords.DIRECTION_SE)
+            board.position(origin, hx.DIRECTION_SE)
         origin = (2, 4)
         with self.assertRaises(LookupError):
-            board.position(origin, coords.DIRECTION_SE)
+            board.position(origin, hx.DIRECTION_SE)
         with self.assertRaises(LookupError):
-            board.position(origin, coords.DIRECTION_SW)
+            board.position(origin, hx.DIRECTION_SW)
 
 def suite():
     suite = unittest.TestSuite()
