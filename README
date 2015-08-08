@@ -2,3 +2,5 @@ Team:    Sir Bedevere the Wise
 Members: Dan Gerhardsson, @DanGerhardsson
          Pär Bohrarper, @rogueops
 
+Dependencies: In order for the Makefile to work, pyinstaller must be installed. It can be installed
+              with 'pip install pyinstaller'.
