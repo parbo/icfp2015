@@ -1,30 +1,40 @@
 #!/usr/bin/env python
 
+import argparse
 import coords
 import game
 import json
 import random
-import sys
 
 if __name__=="__main__":
-    problem = game.Problem.load(sys.argv[1])
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-f', dest='files', action='append', required=True)
+    parser.add_argument('-p', dest='power', action='append')
+    parser.add_argument('-t', dest='time', action='store', type=int)
+    parser.add_argument('-m', dest='memory', action='store', type=int)
+    parser.add_argument('-c', dest='cores', action='store', type=int)
+    args = parser.parse_args()
+
     solutions = []
-    for seed_index, seed in enumerate(problem.source_seeds):
-        random.seed(seed)
-        g = problem.make_game(seed_index)
-        commands = []
-        dirs = [coords.DIRECTION_SE, coords.DIRECTION_SW]
-        cmds = ['l', 'a']
-        while True:
-            ix = random.randint(0, 1)
-            g.move_unit(dirs[ix])
-            commands.append(cmds[ix])
-            if g.unit is None:
-                break
-        solution = {
-            "problemId": problem.id,
-            "seed": seed,
-            "solution": ''.join(commands)
+    for f in args.files:
+        print f
+        problem = game.Problem.load(f)
+        for seed_index, seed in enumerate(problem.source_seeds):
+            random.seed(seed)
+            g = problem.make_game(seed_index)
+            commands = []
+            dirs = [coords.DIRECTION_SE, coords.DIRECTION_SW]
+            cmds = ['l', 'a']
+            while True:
+                ix = random.randint(0, 1)
+                g.move_unit(dirs[ix])
+                commands.append(cmds[ix])
+                if g.unit is None:
+                    break
+            solution = {
+                "problemId": problem.id,
+                "seed": seed,
+                "solution": ''.join(commands)
             }
-        solutions.append(solution)
+            solutions.append(solution)
     print json.dumps(solutions)
