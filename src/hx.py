@@ -18,6 +18,9 @@ def hex_add(a, b):
 def hex_sub(a, b):
     return Hex(a.x - b.x, a.y - b.y, a.z - b.z)
 
+def hex_dist(a, b):
+    return (abs(a.x - b.x) + abs(a.y - b.y) + abs(a.z - b.z)) / 2
+
 def move(h, direction):
     return hex_add(h, direction)
 
