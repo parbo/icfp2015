@@ -22,12 +22,23 @@ if __name__=="__main__":
             random.seed(seed)
             g = problem.make_game(seed_index)
             commands = []
-            dirs = ['SE', 'SW']
-            cmds = ['l', 'a']
+            cmds = {'E': 'b',
+                    'W': 'p',
+                    'SE': 'l',
+                    'SW': 'a',
+                    'CW': 'd',
+                    'CCW': 'k'}
             while True:
-                ix = random.randint(0, 1)
-                g.move_unit(dirs[ix])
-                commands.append(cmds[ix])
+                moves = g.moves()
+                non_lock = moves[game.MOVE_OK]
+                lock = moves[game.MOVE_LOCK]
+                candidates = non_lock if non_lock else lock
+                if candidates:
+                    move = random.choice(candidates)
+                    g.move_unit(move)
+                    commands.append(cmds[move])
+                else:
+                    break
                 if g.unit is None:
                     break
             solution = {
