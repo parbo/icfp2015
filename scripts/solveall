@@ -2,8 +2,9 @@
 
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
+CMD=""
 for fullfile in $DIR/../data/problem_*; do
-    filename=$(basename "$fullfile")
-    filename="${filename%.*}"
-    $1 "$fullfile" > "$DIR/../solutions/${filename}_solution.json"
+	CMD="${CMD} -f $fullfile"
 done
+
+$1 ${CMD}
