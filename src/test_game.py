@@ -44,6 +44,16 @@ class TestBoard(unittest.TestCase):
         with self.assertRaises(LookupError):
             board.position(origin, hx.DIRECTION_SW)
 
+    def test_ceiling(self):
+        board = game.Board(4, 4, [(0, 0), (1, 2)])
+        self.assertListEqual([0, 2, 4, 4], board.ceiling)
+        board.lock([(0, 1), (1, 1), (2, 2)])
+        self.assertListEqual([0, 1, 2, 4], board.ceiling)
+        board.lock([(2, 1), (3, 1)])
+        self.assertListEqual([0, 1, 1, 1], board.ceiling)
+        board.clear_row(1)
+        self.assertListEqual([1, 2, 2, 4], board.ceiling)
+
 def suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestBoard))

@@ -29,11 +29,16 @@ class Board(object):
         self.width = width
         self.height = height
         self.cells = []
+        self.ceiling = width * [height]
         for row in range(height):
             self.cells.append(self.create_empty_row())
         if filled is not None:
             for col, row in filled:
-                self.cells[row][col] = True
+                self._fill_cell(col, row)
+
+    def _fill_cell(self, col, row):
+        self.cells[row][col] = True
+        self.ceiling[col] = min(self.ceiling[col], row)
 
     def __str__(self):
         filled = []
@@ -64,11 +69,21 @@ class Board(object):
         for row in range(row, 0, -1):
             self.cells[row] = self.cells[row - 1]
         self.cells[0] = self.create_empty_row()
+        for col in range(self.width):
+            # self.ceiling[col] can't be greater than row since the row should be
+            # filled in order to be cleared.
+            if self.ceiling[col] < row:
+                self.ceiling[col] += 1
+            elif self.ceiling[col] == row:
+                self.ceiling[col] = self.height
+                for r in range(row, self.height):
+                    if self.filled_cell(col, r):
+                        self.ceiling[col] = r
 
     def lock(self, cells):
         for c in cells:
             col, row = c
-            self.cells[row][col] = True
+            self._fill_cell(col, row)
 
     def position(self, origin, direction):
         """
