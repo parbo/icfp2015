@@ -14,13 +14,13 @@ if __name__=="__main__":
         g = problem.make_game(seed_index)
         commands = []
         dirs = [coords.DIRECTION_SE, coords.DIRECTION_SW]
-        cmds = ['a', 'l']
+        cmds = ['l', 'a']
         while True:
             ix = random.randint(0, 1)
             g.move_unit(dirs[ix])
+            commands.append(cmds[ix])
             if g.unit is None:
                 break
-            commands.append(cmds[ix])
         solution = {
             "problemId": problem.id,
             "seed": seed,
