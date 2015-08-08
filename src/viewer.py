@@ -127,7 +127,6 @@ class Viewer(wx.Frame):
                 solutions = json.loads(cf.read())
                 # For now, just use the first one
                 solution = solutions[0]["solution"]
-                print solution
                 self._commands = [x for x in solution]
         except IOError:
             print "Commands file not found"
@@ -226,11 +225,9 @@ class Viewer(wx.Frame):
         return coord_dirs[dirs[c]]
 
     def Run(self, steps):
-        print self._game_step, self._commands[self._game_step:]
         while steps > 0 and self._game_step < len(self._commands):
             self.game.move_unit(self.DirectionFromCommand(self._commands[self._game_step]))
             self._game_step += 1
-            print self._commands[:self._game_step], self.game.unit
             steps -= 1
         if self._game_running:
             if self._game_step < len(self._commands):
@@ -274,7 +271,6 @@ class Canvas(wx.ScrolledWindow):
         gc = wx.GraphicsContext.Create(dc);
         gc.SetFont(wx.FontFromPixelSize((12,12), wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD), wx.WHITE)
         parent = self.GetParent()
-        print parent.game
         if parent.game is not None:
             for y in range(self._yw):
                 for x in range(self._xw):
