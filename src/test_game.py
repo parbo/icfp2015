@@ -76,6 +76,12 @@ class TestUnit(unittest.TestCase):
         self.assertEqual((2, 1), spawn.pivot)
         self.assertListEqual([(2, 0), (3, 0), (4, 0), (1, 1), (2, 1)], spawn.members)
 
+    def test_reach(self):
+        pivot = (1, 1)
+        members = [(1, 1)]
+        reach = game.Unit(pivot, members).reach
+        self.assertItemsEqual([(0, 1), (1, 1), (1, 2), (2, 2), (2, 1)], reach.members)
+
 def suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestBoard))

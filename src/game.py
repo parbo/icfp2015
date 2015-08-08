@@ -187,6 +187,18 @@ class Unit(object):
     def south_border(self):
         return max([row for col, row in self.members])
 
+    @property
+    def reach(self):
+        """
+        Return a new Unit which contains all cells that can be touched by executing
+        moves on this unit.
+        """
+        touched = set()
+        for move in MOVES:
+            unit = self.action(move)
+            touched.update(set(unit.members))
+        return Unit(self.pivot, list(touched))
+
 def lcg(seed):
     modulus = 2**32
     multiplier = 1103515245
