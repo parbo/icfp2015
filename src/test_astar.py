@@ -18,7 +18,7 @@ def test_hex():
         return neighbours
     def hf(goal):
         def h(n):
-            return hx.hex_dist(goal, n)
+            return hx.distance(goal, n)
         return h
     start = hx.to_hex(0, 0)
     goal = hx.to_hex(6, 7)
@@ -43,7 +43,7 @@ def test_units():
         def h(n):
             gc, gr = goal.pivot
             nc, nr = n.pivot
-            return hx.hex_dist(hx.to_hex(gc, gr), hx.to_hex(nc, nr))
+            return hx.distance(hx.to_hex(gc, gr), hx.to_hex(nc, nr))
         return h
     start = game.Unit((0, 0), [(0, 0), (1, 0)])
     goal = game.Unit((1, 6), [(1, 6), (1, 7)])

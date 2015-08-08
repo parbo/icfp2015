@@ -18,10 +18,6 @@ def hex_add(a, b):
 def hex_sub(a, b):
     return Hex(a.x - b.x, a.y - b.y, a.z - b.z)
 
-# TODO: Remove redundant distance function.
-def hex_dist(a, b):
-    return (abs(a.x - b.x) + abs(a.y - b.y) + abs(a.z - b.z)) / 2
-
 def distance(h0, h1):
     return (abs(h1.x - h0.x) + abs(h1.y - h0.y) + abs(h1.z - h0.z)) / 2
 
