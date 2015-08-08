@@ -130,13 +130,18 @@ class Unit(object):
             unit = unit.rotate(hx.TURN_CCW, -rotation)
         return unit
 
-    #def to_spawn(self, board_width):
-    #    col, row = self.pivot
-    #    west = self.west_border
-    #    width = self.east_border - west + 1
-    #    spawn_col = col + (board_width - width) / 2 - west
-    #    spawn_row = row - self.north_border
-    #    return self.to_position((spawn_col, spawn_row))
+    def to_spawn(self, board_width):
+        # Move vertically
+        col, row = self.pivot
+        spawn_row = row - self.north_border
+        unit = self.to_position((col, spawn_row))
+        # Move horizontally
+        west_border = unit.west_border
+        width = unit.east_border - west_border + 1
+        spawn_border_col = (board_width - width) / 2
+        col, row = unit.pivot
+        spawn_col = col + spawn_border_col - west_border
+        return unit.to_position((spawn_col, row))
 
     def move(self, direction):
         pivot = hx.offset_move(self.pivot, direction)
@@ -223,24 +228,7 @@ class Game(object):
             return
         rand, self.curr_seed = self.rnd.next()
         self.curr_unit = rand % len(self.units)
-        unit = self.units[self.curr_unit]
-        # Center unit (TODO: move this code to unit)
-        left_most = None
-        right_most = None
-        top = None
-        for m in unit.members:
-            x, y = m
-            if left_most is None or x < left_most:
-                left_most = x
-            if right_most is None or x > right_most:
-                right_most = x
-            if top is None or y < top:
-                top = y
-        w = right_most - left_most + 1
-        start = (self.board.width - w) / 2
-        for i in range(left_most, start):
-            unit = unit.move(hx.DIRECTION_E)
-        # Now it should be centered
+        unit = self.units[self.curr_unit].to_spawn(self.board.width)
         if self.is_unit_valid(unit):
             self.unit = unit
             self.footprints = set([self.unit.footprint])

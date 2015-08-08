@@ -62,13 +62,19 @@ class TestUnit(unittest.TestCase):
         self.assertEqual((1, 1), unit.pivot)
         self.assertListEqual([(1, 0), (2, 0), (3, 0), (1, 1)], unit.members)
 
-    #def test_to_spawn(self):
-    #    pivot = (3, 2)
-    #    members = [(2, 1), (3, 1), (4, 1), (3, 2)]
-    #    unit = game.Unit(pivot, members)
-    #    spawn = unit.to_spawn(6)
-    #    self.assertEqual((1, 1), spawn.pivot)
-    #    self.assertListEqual([(1, 0), (2, 0), (3, 0), (1, 1)], spawn.members)
+    def test_to_spawn(self):
+        pivot = (3, 2)
+        members = [(2, 1), (3, 1), (4, 1), (3, 2)]
+        unit = game.Unit(pivot, members)
+        spawn = unit.to_spawn(6)
+        self.assertEqual((1, 1), spawn.pivot)
+        self.assertListEqual([(1, 0), (2, 0), (3, 0), (1, 1)], spawn.members)
+        pivot = (3, 2)
+        members = [(2, 1), (3, 1), (4, 1), (2, 2), (3, 2)]
+        unit = game.Unit(pivot, members)
+        spawn = unit.to_spawn(6)
+        self.assertEqual((2, 1), spawn.pivot)
+        self.assertListEqual([(2, 0), (3, 0), (4, 0), (1, 1), (2, 1)], spawn.members)
 
 def suite():
     suite = unittest.TestSuite()
