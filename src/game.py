@@ -205,7 +205,7 @@ class Game(object):
                    MOVE_ERROR: [],
         }
         for move in MOVES:
-            results[move_result(move)].append(move)
+            results[self.move_result(move)].append(move)
         return results
 
     def move_unit(self, direction):
