@@ -283,6 +283,14 @@ class Canvas(wx.ScrolledWindow):
                     px, py = p
                     points = [(px, py + 9), (px + 16, py), (px + 32, py + 9), (px + 32, py + 27), (px + 16, py + 36), (px, py + 27)]
                     gc.DrawLines(points)
+            # Draw the pivot
+            unit = parent.game.unit
+            if unit:
+                x, y = unit.pivot
+                px, py = self.CalcScrolledPosition((x*32 + 16 * (y % 2), y*27))
+                gc.SetPen(wx.Pen(wx.Colour(180, 180, 180, 255), 1))
+                gc.SetBrush(wx.Brush(wx.Colour(160, 160, 160, 255)))
+                gc.DrawEllipse(px + 16 - 4, py + 18 - 4, 8, 8)
 
     def SetBoardSize(self, xw, yw):
         self._xw = xw
