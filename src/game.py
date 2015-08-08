@@ -17,6 +17,12 @@ MOVE = {'W': hx.DIRECTION_W,
         'SE': hx.DIRECTION_SE,
 }
 
+MOVES = TURN.keys() + MOVE.keys()
+
+MOVE_OK = 0
+MOVE_LOCK = 1
+MOVE_ERROR = 2
+
 class Board(object):
     def __init__(self, width, height, filled=None):
         self.width = width
@@ -93,6 +99,16 @@ class Unit(object):
         members = [hx.offset_rotate(self.pivot, member, direction) for member in self.members]
         return Unit(self.pivot, members)
 
+    def action(self, direction_str):
+        if direction_str in TURN:
+            return self.rotate(TURN[direction_str])
+        else:
+            return self.move(MOVE[direction_str])
+
+    @property
+    def footprint(self):
+        return tuple(sorted(self.members))
+
 def lcg(seed):
     modulus = 2**32
     multiplier = 1103515245
@@ -139,6 +155,7 @@ class Game(object):
         # Now it should be centered
         if self.is_unit_valid(unit):
             self.unit = unit
+            self.footprints = set([self.unit.footprint])
             self.num_units += 1
         else:
             self.unit = None
@@ -173,15 +190,33 @@ class Game(object):
             return False
         return True
 
+    def move_result(self, direction):
+        unit = self.unit.action(direction)
+        if unit.footprint in self.footprints:
+            return MOVE_ERROR
+        elif self.is_unit_valid(unit):
+            return MOVE_OK
+        else:
+            return MOVE_LOCK
+
+    def moves(self):
+        results = {MOVE_OK: [],
+                   MOVE_LOCK: [],
+                   MOVE_ERROR: [],
+        }
+        for move in MOVES:
+            results[move_result(move)].append(move)
+        return results
+
     def move_unit(self, direction):
         if self.unit is None:
             return
-        if direction in TURN:
-            unit = self.unit.rotate(TURN[direction])
-        else:
-            unit = self.unit.move(MOVE[direction])
+        unit = self.unit.action(direction)
+        if unit.footprint in self.footprints:
+            raise ValueError('Illegal move: ' + direction)
         if self.is_unit_valid(unit):
             self.unit = unit
+            self.footprints.add(unit.footprint)
         else:
             self.board.lock(self.unit.members)
             ls = 0
