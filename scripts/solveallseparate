@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+
+for fullfile in $DIR/../data/problem_*; do
+    filename=$(basename "$fullfile")
+    filename="${filename%.*}"
+    $1 -f "$fullfile" > "$DIR/../solutions/${filename}_solution.json"
+done
