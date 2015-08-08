@@ -17,7 +17,6 @@ if __name__=="__main__":
 
     solutions = []
     for f in args.files:
-        print f
         problem = game.Problem.load(f)
         for seed_index, seed in enumerate(problem.source_seeds):
             random.seed(seed)
