@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import copy
 import hx
 import json
 import math
@@ -132,25 +133,40 @@ def lcg(seed):
     curr = seed
     while True:
         new = (multiplier * curr + increment) % modulus
-        yield (curr >> 16) & 0x7fff
+        yield ((curr >> 16) & 0x7fff, curr)
         curr = new
 
 class Game(object):
-    def __init__(self, board, units, max_units, seed):
+    def __init__(self, board, units, max_units, seed, unit=None):
         self.board = board
         self.units = units
         self.max_units = max_units
         self.num_units = 0
+        self.curr_seed = seed
         self.rnd = lcg(seed)
         self.ls_old = 0
         self.score = 0
-        self.next_unit()
+        if unit:
+            self.unit = unit
+        else:
+            self.next_unit()
+
+    def clone(self):
+        board = copy.deepcopy(self.board)
+        units = copy.deepcopy(self.units)
+        unit = copy.deepcopy(self.unit)
+        game = Game(board, units, self.max_units - self.num_units, self.curr_seed, unit=unit)
+        game.footprints = copy.deepcopy(self.footprints)
+        game.score = self.score
+        game.ls_old = self.ls_old
+        return game
 
     def next_unit(self):
         if self.num_units == self.max_units:
             self.unit = None
             return
-        self.curr_unit = self.rnd.next() % len(self.units)
+        rand, self.curr_seed = self.rnd.next()
+        self.curr_unit = rand % len(self.units)
         unit = self.units[self.curr_unit]
         # Center unit (TODO: move this code to unit)
         left_most = None
