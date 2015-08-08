@@ -5,6 +5,14 @@ import unittest
 import hx
 
 class TestHex(unittest.TestCase):
+    def test_distance(self):
+        h0 = hx.to_hex(2, 2)
+        self.assertEqual(0, hx.distance(h0, h0))
+        h1 = hx.to_hex(1, 3)
+        self.assertEqual(1, hx.distance(h0, h1))
+        h2 = hx.to_hex(4, 5)
+        self.assertEqual(4, hx.distance(h0, h2))
+
     def test_move(self):
         origin = hx.to_hex(2, 1)
         col, row = hx.to_offset(hx.move(origin, hx.DIRECTION_E))
@@ -42,6 +50,14 @@ class TestHex(unittest.TestCase):
         col, row = hx.to_offset(hx.rotate(pivot, h, hx.TURN_CCW))
         self.assertEqual(col, 2)
         self.assertEqual(row, 2)
+
+    def test_offset_distance(self):
+        c0 = (2, 2)
+        self.assertEqual(0, hx.offset_distance(c0, c0))
+        c1 = (1, 3)
+        self.assertEqual(1, hx.offset_distance(c0, c1))
+        c2 = (4, 5)
+        self.assertEqual(4, hx.offset_distance(c0, c2))
 
     def test_offset_move(self):
         origin = (2, 1)

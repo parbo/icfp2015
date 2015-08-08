@@ -18,8 +18,12 @@ def hex_add(a, b):
 def hex_sub(a, b):
     return Hex(a.x - b.x, a.y - b.y, a.z - b.z)
 
+# TODO: Remove redundant distance function.
 def hex_dist(a, b):
     return (abs(a.x - b.x) + abs(a.y - b.y) + abs(a.z - b.z)) / 2
+
+def distance(h0, h1):
+    return (abs(h1.x - h0.x) + abs(h1.y - h0.y) + abs(h1.z - h0.z)) / 2
 
 def move(h, direction):
     return hex_add(h, direction)
@@ -30,6 +34,9 @@ def rotate(pivot, h, direction):
         return hex_add(pivot, Hex(-vect.z, -vect.x, -vect.y))
     else:
         return hex_add(pivot, Hex(-vect.y, -vect.z, -vect.x))
+
+def offset_distance(c0, c1):
+    return distance(to_hex(*c0), to_hex(*c1))
 
 def offset_move(cell, direction):
     h = to_hex(*cell)
