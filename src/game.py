@@ -100,21 +100,45 @@ class Board(object):
         return self.width * [False]
 
 class Unit(object):
-    def __init__(self, pivot, members):
+    def __init__(self, pivot, members, radius=None):
         self.pivot = pivot
         self.members = members
+        if radius is None:
+            self.radius = max([hx.offset_distance(pivot, member) for member in members])
+        else:
+            self.radius = radius
 
     def __contains__(self, cell):
         return cell in self.members
 
+    def to_position(self, cell, rotation=0):
+        vector = hx.offset_vector(self.pivot, cell)
+        members = [hx.offset_translate(member, vector) for member in self.members]
+        unit = Unit(cell, members, self.radius)
+        if rotation > 0:
+            unit = unit.rotate(hx.TURN_CW, rotation)
+        elif rotation < 0:
+            unit = unit.rotate(hx.TURN_CCW, -rotation)
+        return unit
+
+    #def to_spawn(self, board_width):
+    #    col, row = self.pivot
+    #    west = self.west_border
+    #    width = self.east_border - west + 1
+    #    spawn_col = col + (board_width - width) / 2 - west
+    #    spawn_row = row - self.north_border
+    #    return self.to_position((spawn_col, spawn_row))
+
     def move(self, direction):
         pivot = hx.offset_move(self.pivot, direction)
         members = [hx.offset_move(member, direction) for member in self.members]
-        return Unit(pivot, members)
+        return Unit(pivot, members, self.radius)
 
-    def rotate(self, direction):
-        members = [hx.offset_rotate(self.pivot, member, direction) for member in self.members]
-        return Unit(self.pivot, members)
+    def rotate(self, direction, steps=1):
+        members = self.members
+        for step in range(steps):
+            members = [hx.offset_rotate(self.pivot, member, direction) for member in members]
+        return Unit(self.pivot, members, self.radius)
 
     def action(self, direction_str):
         if direction_str in TURN:
@@ -125,6 +149,22 @@ class Unit(object):
     @property
     def footprint(self):
         return tuple(sorted(self.members))
+
+    @property
+    def west_border(self):
+        return min([col for col, row in self.members])
+
+    @property
+    def east_border(self):
+        return max([col for col, row in self.members])
+
+    @property
+    def north_border(self):
+        return min([row for col, row in self.members])
+
+    @property
+    def south_border(self):
+        return max([row for col, row in self.members])
 
 def lcg(seed):
     modulus = 2**32

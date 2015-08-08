@@ -47,6 +47,15 @@ def offset_rotate(pivot, cell, direction):
     h = to_hex(*cell)
     return to_offset(rotate(hp, h, direction))
 
+def offset_translate(origin, vector):
+    h = to_hex(*origin)
+    return to_offset(hex_add(h, vector))
+
+def offset_vector(c0, c1):
+    h0 = to_hex(*c0)
+    h1 = to_hex(*c1)
+    return hex_sub(h1, h0)
+
 def to_offset(h):
     col = h.x + (h.z - (h.z % 2)) / 2
     row = h.z

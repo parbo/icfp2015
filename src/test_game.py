@@ -54,9 +54,26 @@ class TestBoard(unittest.TestCase):
         board.clear_row(1)
         self.assertListEqual([1, 2, 2, 4], board.ceiling)
 
+class TestUnit(unittest.TestCase):
+    def test_to_position(self):
+        pivot = (3, 2)
+        members = [(2, 1), (3, 1), (4, 1), (3, 2)]
+        unit = game.Unit(pivot, members).to_position((1, 1))
+        self.assertEqual((1, 1), unit.pivot)
+        self.assertListEqual([(1, 0), (2, 0), (3, 0), (1, 1)], unit.members)
+
+    #def test_to_spawn(self):
+    #    pivot = (3, 2)
+    #    members = [(2, 1), (3, 1), (4, 1), (3, 2)]
+    #    unit = game.Unit(pivot, members)
+    #    spawn = unit.to_spawn(6)
+    #    self.assertEqual((1, 1), spawn.pivot)
+    #    self.assertListEqual([(1, 0), (2, 0), (3, 0), (1, 1)], spawn.members)
+
 def suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestBoard))
+    suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestUnit))
     return suite
 
 if __name__ == '__main__':

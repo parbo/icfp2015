@@ -97,6 +97,13 @@ class TestHex(unittest.TestCase):
         self.assertEqual(col, 2)
         self.assertEqual(row, 2)
 
+    def test_offset_translate(self):
+        c0 = (1, 2)
+        c1 = (4, 1)
+        vector = hx.offset_vector(c0, c1)
+        c2 = hx.offset_translate(c0, vector)
+        self.assertEqual(c1, c2)
+
 def suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestHex))
