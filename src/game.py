@@ -111,6 +111,15 @@ class Unit(object):
     def __contains__(self, cell):
         return cell in self.members
 
+    def __eq__(self, other):
+        return self.footprint == other.footprint
+
+    def __ne__(self, other):
+        return self.footprint != other.footprint
+
+    def __hash__(self):
+        return hash(self.footprint)
+
     def to_position(self, cell, rotation=0):
         vector = hx.offset_vector(self.pivot, cell)
         members = [hx.offset_translate(member, vector) for member in self.members]
@@ -145,6 +154,13 @@ class Unit(object):
             return self.rotate(TURN[direction_str])
         else:
             return self.move(MOVE[direction_str])
+
+    def move_to_reach(self, other):
+        for move in MOVES:
+            unit = self.action(move)
+            if unit == other:
+                return move
+        return None
 
     @property
     def footprint(self):

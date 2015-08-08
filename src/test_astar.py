@@ -48,7 +48,8 @@ def test_units():
     start = game.Unit((0, 0), [(0, 0), (1, 0)])
     goal = game.Unit((1, 6), [(1, 6), (1, 7)])
     f, p = astar.astar(start, goal, g, hf(goal), nf(None))
-    print f, p
+    moves = [p[i].move_to_reach(p[i + 1]) for i in range(len(p) - 1)]
+    print f, moves
 
 if __name__=="__main__":
     test_hex()
