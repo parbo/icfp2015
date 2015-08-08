@@ -22,7 +22,10 @@ class BaseSolver(object):
             for seed_index, seed in enumerate(problem.source_seeds):
                 random.seed(seed)
                 g = problem.make_game(seed_index)
-                commands = self.solve(g)
+                try:
+                    commands = self.solve(g)
+                except Exception as e:
+                    commands = list('error')
                 solution = {
                     "problemId": problem.id,
                     "seed": seed,
