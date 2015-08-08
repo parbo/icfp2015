@@ -172,6 +172,10 @@ class Viewer(wx.Frame):
             self.MakeMove('a')
         elif kc == ord('D'):
             self.MakeMove('l')
+        elif kc == ord('Q'):
+            self.MakeMove('k')
+        elif kc == ord('R'):
+            self.MakeMove('d')
         else:
             event.Skip()
 
@@ -216,13 +220,7 @@ class Viewer(wx.Frame):
                 "w": "CCW",
                 "x": "CCW"
         }
-        coord_dirs = {
-            "W": hx.DIRECTION_W,
-            "E": hx.DIRECTION_E,
-            "SE": hx.DIRECTION_SE,
-            "SW": hx.DIRECTION_SW
-        }
-        return coord_dirs[dirs[c]]
+        return dirs[c]
 
     def Run(self, steps):
         while steps > 0 and self._game_step < len(self._commands):

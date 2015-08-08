@@ -7,6 +7,16 @@ CELL_EMPTY = ''
 CELL_FILLED = 'F'
 CELL_UNIT = 'U'
 
+TURN = {'CW': hx.TURN_CW,
+        'CCW': hx.TURN_CCW,
+}
+
+MOVE = {'W': hx.DIRECTION_W,
+        'E': hx.DIRECTION_E,
+        'SW': hx.DIRECTION_SW,
+        'SE': hx.DIRECTION_SE,
+}
+
 class Board(object):
     def __init__(self, width, height, filled=None):
         self.width = width
@@ -166,7 +176,10 @@ class Game(object):
     def move_unit(self, direction):
         if self.unit is None:
             return
-        unit = self.unit.move(direction)
+        if direction in TURN:
+            unit = self.unit.rotate(TURN[direction])
+        else:
+            unit = self.unit.move(MOVE[direction])
         if self.is_unit_valid(unit):
             self.unit = unit
         else:
