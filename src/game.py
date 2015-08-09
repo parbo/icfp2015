@@ -202,7 +202,7 @@ class Unit(object):
         self.pivot = pivot
         self.members = members
         self.footprint = tuple(sorted(self.members))
-        self.hash = hash(self.footprint + [self.pivot])
+        self.hash = hash(self.footprint + (self.pivot,))
         if radius is None:
             self.radius = max([hx.offset_distance(pivot, member) for member in members])
         else:
