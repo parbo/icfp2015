@@ -98,10 +98,10 @@ class CleverSolver(solver.BaseSolver):
                     print "************************"
             # Compute lockable units
             lockable = set()
-            reachable = g.board.reachable_cells(g.unit.members[0])
+            #reachable = g.board.reachable_cells(g.unit.members[0])
             for unit in processed:
-                if not all([m in reachable for m in unit.members]):
-                    continue
+                # if not all([m in reachable for m in unit.members]):
+                #     continue
                 if g.is_unit_valid(unit):
                     moves = g.moves_unit(unit)
                     if len(moves[game.MOVE_LOCK]) > 0:
