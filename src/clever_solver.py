@@ -57,6 +57,10 @@ class CleverSolver(solver.BaseSolver):
                 game.CMD_CW: 'd',
                 game.CMD_CCW: 'k'}
         bw, bh = g.size
+        fbh = float(bh)
+        fbw = float(bw)
+        ftot = float(bw*bh)
+        maxjaggedness = ftot / 2
         computed_units = {}
         while True:
             if verbosity > 0:
@@ -117,7 +121,8 @@ class CleverSolver(solver.BaseSolver):
                 ceiling = board.ceiling
                 heights = [bh - ceiling[col] for col in range(bw)]
                 max_height = max(heights)
-                average_height = sum(heights) / float(bw)
+                sum_height = float(sum(heights))
+                average_height = sum_height / fbw
                 jaggedness = 0
                 for col in range(bw - 1):
                     jaggedness += abs(heights[col] - heights[col])
@@ -126,15 +131,28 @@ class CleverSolver(solver.BaseSolver):
                     for row in range(ceiling[col], bh):
                         if not board.filled_cell(col, row):
                             holes += 1
-                filledness = bw * bh - holes
-                evenness = bw * bh - jaggedness
-                score = g.calc_unit_score(unit, filled)
-                avghscore = (bh - average_height)
-                heightscore = (bh - max_height)
-                downness = sum([y for x, y in unit.members])
-                if verbosity == 5:
-                    print filled, score, avghscore, heightscore, filledness, evenness, downness
-                scores[unit] = 100 * filled + score + avghscore + heightscore + filledness + evenness + downness
+                last_filled = False
+                changes = 0
+                elems = 0
+                for row in range(bh):
+                    for col in range(bw):
+                        f = board.filled_cell(col, row)
+                        if f:
+                            elems += 1
+                        if f != last_filled:
+                            changes += 1
+                        last_filled = f
+                felems = float(elems)
+                connectedness = (ftot - changes) / ftot
+                filledness = (sum_height - holes) / felems
+                evenness = (maxjaggedness - jaggedness) / maxjaggedness
+#                score = g.calc_unit_score(unit, filled)
+                avghscore = (bh - average_height) / fbh
+                heightscore = (bh - max_height) / fbh
+                downness = sum([y for x, y in unit.members]) / (len(unit.members) * fbh)
+                if verbosity > 3:
+                    print filled, avghscore, heightscore, filledness, evenness, downness, connectedness
+                scores[unit] = filled + avghscore + heightscore + filledness + evenness + downness + connectedness
 
             # Go through them in order of best score
             moves = None
