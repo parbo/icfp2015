@@ -136,6 +136,27 @@ class Board(object):
         else:
             return cells - filled
 
+    def is_within_board(self, cell):
+        col, row = cell
+        return (0 <= col < self.width) and (0 <= row < self.height)
+
+    def reachable_cells(self, from_cell):
+        reached = set([])
+        q = [from_cell]
+        while q:
+            cell = q.pop()
+            reached.add(cell)
+            neighbors = hx.offset_circle(cell, 1)
+            for n in neighbors:
+                if not self.is_within_board(n):
+                    continue
+                if self.filled_cell(*n):
+                    continue
+                if n in reached:
+                    continue
+                q.append(n)
+        return reached
+
 class BoardWithUnit(object):
     def __init__(self, board, unit):
         self.board = board

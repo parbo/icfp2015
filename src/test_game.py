@@ -63,6 +63,11 @@ class TestBoard(unittest.TestCase):
         self.assertSetEqual(set([(0, 1), (1, 1), (2, 1), (3, 2),
                                  (0, 2), (0, 3), (1, 3), (2, 3)]), s)
 
+    def test_reached(self):
+        board = game.Board(3, 3, [(0, 1), (1, 1), (1, 2)])
+        r = board.reachable_cells((1, 0))
+        self.assertSetEqual(set([(0, 0), (1, 0), (2, 0), (2, 1), (2, 2)]), r)
+
 class TestUnit(unittest.TestCase):
     def test_to_position(self):
         pivot = (3, 2)
