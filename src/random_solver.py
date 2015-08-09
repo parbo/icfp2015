@@ -5,7 +5,7 @@ import random
 import solver
 
 class RandomSolver(solver.BaseSolver):
-    def solve(self, g):
+    def solve(self, g, verbosity):
         commands = []
         cmds = {'E': 'b',
                 'W': 'p',

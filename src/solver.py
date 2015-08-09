@@ -15,6 +15,7 @@ class BaseSolver(object):
         parser.add_argument('-t', dest='time', action='store', type=int)
         parser.add_argument('-m', dest='memory', action='store', type=int)
         parser.add_argument('-c', dest='cores', action='store', type=int)
+        parser.add_argument('-v', dest='verbosity', action='store', type=int, default=0)
         args = parser.parse_args()
 
         solutions = []
@@ -24,7 +25,7 @@ class BaseSolver(object):
                 random.seed(seed)
                 g = problem.make_game(seed_index)
                 try:
-                    commands = self.solve(g)
+                    commands = self.solve(g, args.verbosity)
                 except Exception as e:
                     #traceback.print_exc(e)
                     commands = list('error')

@@ -7,8 +7,6 @@ import hx
 import operator
 import solver
 
-DEBUG = False
-
 def draw(g, unit):
     rows = []
     for row in range(g.board.height):
@@ -49,7 +47,7 @@ def find_path(gameobj, goal):
 
 
 class CleverSolver(solver.BaseSolver):
-    def solve(self, g):
+    def solve(self, g, verbosity):
         commands = []
         cmds = {game.CMD_E: 'b',
                 game.CMD_W: 'p',
@@ -60,9 +58,10 @@ class CleverSolver(solver.BaseSolver):
         bw, bh = g.size
         computed_units = {}
         while True:
-            if DEBUG:
-                draw(g, None)
+            if verbosity > 0:
                 print g.num_units, g.max_units
+            if verbosity > 2:
+                draw(g, None)
             scores = {}
             moves = []
             if g.unit is None:
@@ -94,7 +93,7 @@ class CleverSolver(solver.BaseSolver):
                     moves = g.moves_unit(unit)
                     if len(moves[game.MOVE_LOCK]) > 0:
                         lockable.add(unit)
-            if DEBUG:
+            if verbosity > 0:
                 print "lockables:", len(lockable)
             # Compute scores for all lockables
             scores = {}
@@ -116,14 +115,14 @@ class CleverSolver(solver.BaseSolver):
             # Go through them in order of best score
             moves = None
             for unit, score in reversed(sorted(scores.iteritems(), key=operator.itemgetter(1))):
-                if DEBUG:
+                if verbosity > 0:
                     print "score:", score
                 # Calculate the path
                 moves = find_path(g, unit)
                 if moves:
                     break
                 else:
-                    if DEBUG:
+                    if verbosity > 1:
                         draw(g, unit)
             if not moves:
                 break
