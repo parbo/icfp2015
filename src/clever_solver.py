@@ -118,10 +118,23 @@ class CleverSolver(solver.BaseSolver):
                 heights = [bh - ceiling[col] for col in range(bw)]
                 max_height = max(heights)
                 average_height = sum(heights) / float(bw)
+                jaggedness = 0
+                for col in range(bw - 1):
+                    jaggedness += abs(heights[col] - heights[col])
+                holes = 0
+                for col in range(bw):
+                    for row in range(ceiling[col], bh):
+                        if not board.filled_cell(col, row):
+                            holes += 1
+                filledness = bw * bh - holes
+                evenness = bw * bh - jaggedness
                 score = g.calc_unit_score(unit, filled)
                 avghscore = (bh - average_height)
                 heightscore = (bh - max_height)
-                scores[unit] = score + avghscore + heightscore
+                downness = sum([y for x, y in unit.members])
+                if verbosity == 5:
+                    print filled, score, avghscore, heightscore, filledness, evenness, downness
+                scores[unit] = 100 * filled + score + avghscore + heightscore + filledness + evenness + downness
 
             # Go through them in order of best score
             moves = None
