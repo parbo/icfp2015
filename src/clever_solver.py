@@ -9,6 +9,7 @@ import solver
 
 def draw(g, unit):
     rows = []
+    print "_"*g.board.width*2
     for row in range(g.board.height):
         rows.append(['|*' if c else '| ' for c in g.board.cells[row]])
     if unit:
@@ -29,7 +30,9 @@ def find_path(gameobj, goal):
     def nf(g):
         def neighbours(u):
             nb = []
-            for d in game.CMDS:
+            moves = gameobj.moves_unit(u)
+            ok_moves = moves[game.MOVE_OK]
+            for d in ok_moves:
                 new_u = u.action(d)
                 col, row = new_u.pivot
                 if gameobj.is_unit_valid(new_u):
@@ -150,9 +153,10 @@ class CleverSolver(solver.BaseSolver):
                 avghscore = (bh - average_height) / fbh
                 heightscore = (bh - max_height) / fbh
                 downness = sum([y for x, y in unit.members]) / (len(unit.members) * fbh)
+                total_score = filled + avghscore + heightscore + filledness + evenness + downness + connectedness
                 if verbosity > 3:
-                    print filled, avghscore, heightscore, filledness, evenness, downness, connectedness
-                scores[unit] = filled + avghscore + heightscore + filledness + evenness + downness + connectedness
+                    print "score:", total_score, "parts:", filled, avghscore, heightscore, filledness, evenness, downness, connectedness
+                scores[unit] = total_score
 
             # Go through them in order of best score
             moves = None
@@ -162,14 +166,20 @@ class CleverSolver(solver.BaseSolver):
                 # Calculate the path
                 moves = find_path(g, unit)
                 if moves:
+                    if verbosity > 4:
+                        draw(g, unit)
                     break
                 else:
                     if verbosity > 1:
                         draw(g, unit)
             if not moves:
                 break
+            if verbosity > 2:
+                print moves
             for m in moves:
                 g.move_unit(m)
+                if verbosity > 6:
+                    draw(g, unit)
                 commands.append(cmds[m])
             # lock unit if necessary
             if g.unit:

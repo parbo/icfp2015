@@ -202,7 +202,7 @@ class Unit(object):
         self.pivot = pivot
         self.members = members
         self.footprint = tuple(sorted(self.members))
-        self.hash = hash(self.footprint)
+        self.hash = hash(self.footprint + [self.pivot])
         if radius is None:
             self.radius = max([hx.offset_distance(pivot, member) for member in members])
         else:
@@ -213,16 +213,17 @@ class Unit(object):
 
     def __eq__(self, other):
         if self.hash == other.hash:
-            return self.footprint == other.footprint
+            return self.pivot == other.pivot and self.footprint == other.footprint
         return False
 
     def __ne__(self, other):
-        if self.hash == other.hash:
-            return self.footprint != other.footprint
-        return True
+        return not self.__eq__(other)
 
     def __hash__(self):
         return self.hash
+
+    def __str__(self):
+        return "(%s, %s)"%(self.pivot, self.members)
 
     def to_position(self, cell, rotation=0):
         vector = hx.offset_vector(self.pivot, cell)
@@ -433,7 +434,7 @@ class Game(object):
             return
         unit = self.unit.action(direction)
         if unit.footprint in self.footprints:
-            raise ValueError('Illegal move: ' + direction)
+            raise ValueError('Illegal move: %d'%direction)
         if self.is_unit_valid(unit):
             self.unit = unit
             self.footprints.add(unit.footprint)
