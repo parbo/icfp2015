@@ -186,6 +186,7 @@ class Unit(object):
         self.pivot = pivot
         self.members = members
         self.footprint = tuple(sorted(self.members))
+        self.hash = hash(self.footprint)
         if radius is None:
             self.radius = max([hx.offset_distance(pivot, member) for member in members])
         else:
@@ -195,13 +196,17 @@ class Unit(object):
         return cell in self.members
 
     def __eq__(self, other):
-        return self.footprint == other.footprint
+        if self.hash == other.hash:
+            return self.footprint == other.footprint
+        return False
 
     def __ne__(self, other):
-        return self.footprint != other.footprint
+        if self.hash != other.hash:
+            return self.footprint != other.footprint
+        return False
 
     def __hash__(self):
-        return hash(self.footprint)
+        return self.hash
 
     def to_position(self, cell, rotation=0):
         vector = hx.offset_vector(self.pivot, cell)
