@@ -5,15 +5,16 @@ import game
 import hx
 import json
 import multiprocessing as mp
+import power
 import random
 import traceback
 
 def pickle_helper(arg):
-    solver, problem, seed, seed_index, verbosity = arg
-    return solver.runSeed(problem, seed, seed_index, verbosity)
+    solver, problem, seed, seed_index, verbosity, phrases = arg
+    return solver.runSeed(problem, seed, seed_index, verbosity, phrases)
 
 class BaseSolver(object):
-    def runSeed(self, problem, seed, seed_index, verbosity):
+    def runSeed(self, problem, seed, seed_index, verbosity, phrases):
         random.seed(seed)
         g = problem.make_game(seed_index)
         try:
@@ -22,10 +23,13 @@ class BaseSolver(object):
             if verbosity > 0:
                 traceback.print_exc(e)
             commands = list('error')
+        cmdstr = ''.join(commands)
+        if phrases:
+            cmdstr = power.subst(cmdstr, phrases[0])
         solution = {
             "problemId": problem.id,
             "seed": seed,
-            "solution": ''.join(commands)
+            "solution": cmdstr
         }
         return solution
 
@@ -42,7 +46,7 @@ class BaseSolver(object):
         solutions = []
         for f in args.files:
             problem = game.Problem.load(f)
-            params = [(self, problem, seed, seed_index, args.verbosity) for seed_index, seed in enumerate(problem.source_seeds)]
+            params = [(self, problem, seed, seed_index, args.verbosity, args.power) for seed_index, seed in enumerate(problem.source_seeds)]
             p = mp.Pool(args.cores)
             s = p.map_async(pickle_helper, params).get(args.time)
             solutions.extend(s)
