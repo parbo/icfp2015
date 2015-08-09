@@ -71,23 +71,31 @@ class CleverSolver(solver.BaseSolver):
             if g.unit in computed_units:
                 processed = computed_units[g.unit]
             else:
-                processed = {}
+                processed = set()
                 for s in range(6):
                     unit = g.unit.rotate(hx.TURN_CW, s)
                     for row in range(bh):
                         for col in range(bw):
                             new_unit = unit.to_position_nw((col, row))
-                            if new_unit in processed:
+                            ok = True
+                            for x, y in new_unit.members:
+                                if x < 0 or x >= bw or y < 0 or y >= bh:
+                                    ok = False
+                                    break
+                            if not ok or new_unit in processed:
                                 continue
-                            processed[(col, row)] = new_unit
+                            processed.add(new_unit)
                 computed_units[g.unit] = processed
+            if verbosity == 6:
+                print "************************"
+                print "num possible:", len(processed)
+                for u in sorted(processed, key=lambda x: x.pivot):
+                    draw(g, u)
+                    print "************************"
             # Compute lockable units
             lockable = set()
             reachable = g.board.reachable_cells(g.unit.members[0])
-            for pos, unit in processed.items():
-                col, row = pos
-                if (col, row) not in reachable:
-                    continue
+            for unit in processed:
                 if not all([m in reachable for m in unit.members]):
                     continue
                 if g.is_unit_valid(unit):
