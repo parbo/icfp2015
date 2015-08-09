@@ -4,7 +4,7 @@ import collections
 import math
 
 class CHex(object):
-    __slots__ = ['x', 'y', 'z']
+#    __slots__ = ['x', 'y', 'z']
     __hash__ = None
 
     def __init__(self, x=0, y=0, z=0):

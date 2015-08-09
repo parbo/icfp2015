@@ -183,15 +183,6 @@ class BoardWithUnit(object):
             return True
         return (col, row) in self.unit.members
 
-    def filled_cells(self):
-        cells = set()
-        for row in range(self.board.height):
-            for col in range(self.board.width):
-                if self.board.cells[row][col]:
-                    cells.add((col, row))
-        set.update(set(self.unit.members))
-        return cells
-
     def filled_row(self, row):
         for col in range(self.board.width):
             if not self.filled_cell(col, row):
@@ -425,6 +416,28 @@ class Game(object):
          for move in MOVES:
              results[self.move_unit_result(unit, move)].append(move)
          return results
+
+    def move_unit_result_wu(self, unit, direction):
+        unit = unit.action(direction)
+        if unit.footprint in self.footprints:
+            return (MOVE_ERROR, unit)
+        elif self.is_unit_valid(unit):
+            return (MOVE_OK, unit)
+        else:
+            return (MOVE_LOCK, unit)
+
+    def moves_unit_wu(self, unit):
+         results = {MOVE_OK: [],
+                    MOVE_LOCK: [],
+                    MOVE_ERROR: [],
+         }
+         for move in MOVES:
+             r, u = self.move_unit_result_wu(unit, move)
+             results[r].append((move, u))
+         return results
+
+    def any_locking_move(self, unit):
+        return any((x == MOVE_LOCK for x in (self.move_unit_result(unit, move) for move in MOVES)))
 
     def moves(self):
         return self.moves_unit(self.unit)

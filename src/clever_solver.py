@@ -29,15 +29,9 @@ def find_path(gameobj, goal):
         return 1
     def nf(g):
         def neighbours(u):
-            nb = []
-            moves = gameobj.moves_unit(u)
+            moves = gameobj.moves_unit_wu(u)
             ok_moves = moves[game.MOVE_OK]
-            for d in ok_moves:
-                new_u = u.action(d)
-                col, row = new_u.pivot
-                if gameobj.is_unit_valid(new_u):
-                    nb.append(new_u)
-            return nb
+            return [new_u for d, new_u in ok_moves]
         return neighbours
     def hf(goal):
         def h(n):
@@ -82,8 +76,7 @@ class CleverSolver(solver.BaseSolver):
         lockable = set()
         for unit in possible:
             if g.is_unit_valid(unit):
-                moves = g.moves_unit(unit)
-                if len(moves[game.MOVE_LOCK]) > 0:
+                if g.any_locking_move(unit):
                     lockable.add(unit)
         if self.verbosity > 0:
             print "lockables:", len(lockable)
@@ -95,6 +88,12 @@ class CleverSolver(solver.BaseSolver):
         ftot = float(bw*bh)
         maxjaggedness = ftot / 2
         scores = {}
+        filled_cells = set()
+        gb = g.board
+        for row in range(gb.height):
+            for col in range(gb.width):
+                if gb.cells[row][col]:
+                    filled_cells.add((col, row))
         for unit in lockable:
             if self.verbosity == 5:
                 draw(g, unit)
@@ -114,20 +113,20 @@ class CleverSolver(solver.BaseSolver):
             last_filled = False
             changes = 0
             elems = 0
-            filled_cells = board.filled_cells()
-            for row in range(bh):
-                for col in range(bw):
-                    f = (col, row) in filled_cells
+            filled_cells_unit = set(filled_cells)
+            filled_cells_unit.update(set(unit.members))
+            holes = 0
+            for col in range(bw):
+                ceil = ceiling[col]
+                for row in range(bh):
+                    f = (col, row) in filled_cells_unit
                     if f:
                         elems += 1
+                    elif row >= ceil:
+                        holes += 1
                     if f != last_filled:
                         changes += 1
                     last_filled = f
-            holes = 0
-            for col in range(bw):
-                for row in range(ceiling[col], bh):
-                    if not (col, row) in filled_cells:
-                        holes += 1
             felems = float(elems)
             connectedness = (ftot - changes) / ftot
             filledness = (sum_height - holes) / felems
