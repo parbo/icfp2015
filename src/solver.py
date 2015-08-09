@@ -41,13 +41,18 @@ class BaseSolver(object):
         parser.add_argument('-m', dest='memory', action='store', type=int)
         parser.add_argument('-c', dest='cores', action='store', type=int, default=1)
         parser.add_argument('-v', dest='verbosity', action='store', type=int, default=0)
+        parser.add_argument('-k', dest='profile', action='store_true')
         args = parser.parse_args()
 
         solutions = []
         for f in args.files:
             problem = game.Problem.load(f)
             params = [(self, problem, seed, seed_index, args.verbosity, args.power) for seed_index, seed in enumerate(problem.source_seeds)]
-            p = mp.Pool(args.cores)
-            s = p.map_async(pickle_helper, params).get(args.time)
+            # cProfile doesn't work with multiprocessing
+            if args.profile:
+                s = map(pickle_helper, params)
+            else:
+                p = mp.Pool(args.cores)
+                s = p.map_async(pickle_helper, params).get(args.time)
             solutions.extend(s)
         print json.dumps(solutions)
