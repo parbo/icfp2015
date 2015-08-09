@@ -9,14 +9,30 @@ CELL_EMPTY = ''
 CELL_FILLED = 'F'
 CELL_UNIT = 'U'
 
-TURN = {'CW': hx.TURN_CW,
-        'CCW': hx.TURN_CCW,
+CMD_E = 0
+CMD_W = 1
+CMD_SE = 2
+CMD_SW = 3
+CMD_CW = 4
+CMD_CCW = 5
+
+CMDS = (
+    CMD_E,
+    CMD_W,
+    CMD_SE,
+    CMD_SW,
+    CMD_CW,
+    CMD_CCW
+)
+
+TURN = {CMD_CW: hx.TURN_CW,
+        CMD_CCW: hx.TURN_CCW,
 }
 
-MOVE = {'W': hx.DIRECTION_W,
-        'E': hx.DIRECTION_E,
-        'SW': hx.DIRECTION_SW,
-        'SE': hx.DIRECTION_SE,
+MOVE = {CMD_W: hx.DIRECTION_W,
+        CMD_E: hx.DIRECTION_E,
+        CMD_SW: hx.DIRECTION_SW,
+        CMD_SE: hx.DIRECTION_SE,
 }
 
 MOVES = TURN.keys() + MOVE.keys()
@@ -253,11 +269,11 @@ class Unit(object):
             members = [hx.offset_rotate(self.pivot, member, direction) for member in members]
         return Unit(self.pivot, members, self.radius)
 
-    def action(self, direction_str):
-        if direction_str in TURN:
-            return self.rotate(TURN[direction_str])
+    def action(self, cmd):
+        if cmd in TURN:
+            return self.rotate(TURN[cmd])
         else:
-            return self.move(MOVE[direction_str])
+            return self.move(MOVE[cmd])
 
     def move_to_reach(self, other):
         for move in MOVES:

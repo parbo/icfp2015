@@ -7,16 +7,16 @@ import hx
 import operator
 import solver
 
-def find_path(game, goal):
+def find_path(gameobj, goal):
     def g(n1, n2):
         return 1
     def nf(g):
         def neighbours(u):
             nb = []
-            for d in ["SE", "SW", "E", "W", "CW", "CCW"]:
+            for d in game.CMDS:
                 new_u = u.action(d)
                 col, row = new_u.pivot
-                if game.is_unit_valid(new_u):
+                if gameobj.is_unit_valid(new_u):
                     nb.append(new_u)
             return nb
         return neighbours
@@ -26,7 +26,7 @@ def find_path(game, goal):
             nc, nr = n.pivot
             return hx.distance(hx.to_hex(gc, gr), hx.to_hex(nc, nr))
         return h
-    f, p = astar.astar(game.unit, goal, g, hf(goal), nf(None))
+    f, p = astar.astar(gameobj.unit, goal, g, hf(goal), nf(None))
     moves = [p[i].move_to_reach(p[i + 1]) for i in range(len(p) - 1)]
     return moves
 
@@ -34,12 +34,12 @@ def find_path(game, goal):
 class CleverSolver(solver.BaseSolver):
     def solve(self, g):
         commands = []
-        cmds = {'E': 'b',
-                'W': 'p',
-                'SE': 'l',
-                'SW': 'a',
-                'CW': 'd',
-                'CCW': 'k'}
+        cmds = {game.CMD_E: 'b',
+                game.CMD_W: 'p',
+                game.CMD_SE: 'l',
+                game.CMD_SW: 'a',
+                game.CMD_CW: 'd',
+                game.CMD_CCW: 'k'}
         bw, bh = g.size
         while True:
             scores = {}
