@@ -2,6 +2,7 @@
 
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
+trap "exit" INT
 for fullfile in $DIR/../data/problem_*; do
     filename=$(basename "$fullfile")
     filename="${filename%.*}"
