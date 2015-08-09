@@ -5,6 +5,7 @@ import game
 import hx
 import json
 import random
+import traceback
 
 class BaseSolver(object):
     def run(self):
@@ -25,7 +26,7 @@ class BaseSolver(object):
                 try:
                     commands = self.solve(g)
                 except Exception as e:
-                    #print e
+                    #traceback.print_exc(e)
                     commands = list('error')
                 solution = {
                     "problemId": problem.id,
