@@ -104,6 +104,14 @@ class TestHex(unittest.TestCase):
         c2 = hx.offset_translate(c0, vector)
         self.assertEqual(c1, c2)
 
+    def test_offset_circle(self):
+        center = (2, 2)
+        c1 = hx.offset_circle(center, 1)
+        self.assertListEqual([(1, 1), (2, 1), (3, 2), (2, 3), (1, 3), (1, 2)], c1)
+        c2 = hx.offset_circle(center, 2)
+        self.assertListEqual([(1, 0), (2, 0), (3, 0), (3, 1), (4, 2), (3, 3),
+                              (3, 4), (2, 4), (1, 4), (0, 3), (0, 2), (0, 1)], c2)
+
 def suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestHex))
