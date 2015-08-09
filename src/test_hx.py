@@ -51,6 +51,20 @@ class TestHex(unittest.TestCase):
         self.assertEqual(col, 2)
         self.assertEqual(row, 2)
 
+    def test_abs_rotation_distance(self):
+        pivot = (1, 2)
+        c = [(4, 3)]
+        for i in range(6):
+            c.append(hx.offset_rotate(pivot, c[-1], hx.TURN_CW))
+        v = [hx.offset_vector(pivot, ci) for ci in c]
+        self.assertEqual(0, hx.abs_rotation_distance(v[0], v[0]))
+        self.assertEqual(1, hx.abs_rotation_distance(v[0], v[1]))
+        self.assertEqual(2, hx.abs_rotation_distance(v[0], v[2]))
+        self.assertEqual(3, hx.abs_rotation_distance(v[0], v[3]))
+        self.assertEqual(2, hx.abs_rotation_distance(v[0], v[4]))
+        self.assertEqual(1, hx.abs_rotation_distance(v[0], v[5]))
+        self.assertEqual(0, hx.abs_rotation_distance(v[0], v[6]))
+
     def test_offset_distance(self):
         c0 = (2, 2)
         self.assertEqual(0, hx.offset_distance(c0, c0))

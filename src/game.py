@@ -282,6 +282,11 @@ class Unit(object):
                 return move
         return None
 
+    def abs_rotation_distance(self, other):
+        v0 = hx.offset_vector(self.pivot, self.members[0])
+        v1 = hx.offset_vector(other.pivot, other.members[0])
+        return hx.abs_rotation_distance(v0, v1)
+
     @property
     def west_border(self):
         return min([col for col, row in self.members])

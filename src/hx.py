@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import collections
+import math
 
 class CHex(object):
     __slots__ = ['x', 'y', 'z']
@@ -85,6 +86,23 @@ def rotate(pivot, h, direction):
         return hex_add(pivot, Hex(-vect.z, -vect.x, -vect.y))
     else:
         return hex_add(pivot, Hex(-vect.y, -vect.z, -vect.x))
+
+def _normalize(vect):
+    length = math.sqrt(vect.x ** 2 + vect.y ** 2 + vect.z ** 2)
+    return Hex(vect.x / length, vect.y / length, vect.z / length)
+
+def abs_rotation_distance(v0, v1):
+    n0 = _normalize(v0)
+    n1 = _normalize(v1)
+    s = n0.x * n1.x + n0.y * n1.y + n0.z * n1.z
+    if s > 0.8:
+        return 0
+    elif s > 0.0:
+        return 1
+    elif s > -0.8:
+        return 2
+    else:
+        return 3
 
 def circle(center, radius):
     members = []
