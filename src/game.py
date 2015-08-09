@@ -217,9 +217,9 @@ class Unit(object):
         return False
 
     def __ne__(self, other):
-        if self.hash != other.hash:
+        if self.hash == other.hash:
             return self.footprint != other.footprint
-        return False
+        return True
 
     def __hash__(self):
         return self.hash
