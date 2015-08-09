@@ -2,7 +2,49 @@
 
 import collections
 
-Hex = collections.namedtuple('Hex', ['x', 'y', 'z'])
+class CHex(object):
+    __slots__ = ['x', 'y', 'z']
+    __hash__ = None
+
+    def __init__(self, x=0, y=0, z=0):
+        self.x = x
+        self.y = y
+        self.z = z
+
+    def __eq__(self, other):
+        return self.x == other.x and self.y == other.y and self.z == other.z
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __nonzero__(self):
+        return self.x != 0 or self.y != 0 or self.z != 0
+
+    def __len__(self):
+        return 3
+
+    def __getitem__(self, key):
+        return (self.x, self.y, self.z)[key]
+
+    def __setitem__(self, key, value):
+        l = [self.x, self.y, self.z]
+        l[key] = value
+        self.x, self.y, self.z = l
+
+    def __iter__(self):
+        return iter((self.x, self.y, self.z))
+
+    def __getattr__(self, name):
+        try:
+            return tuple([(self.x, self.y, self.z)['xyz'.index(c)] for c in name])
+        except ValueError:
+            raise AttributeError, name
+
+USE_NAMEDTUPLE = False
+if USE_NAMEDTUPLE:
+    Hex = collections.namedtuple('Hex', ['x', 'y', 'z'])
+else:
+    Hex = CHex
 
 DIRECTION_E = Hex(1, -1, 0)
 DIRECTION_W = Hex(-1, 1, 0)
