@@ -27,7 +27,8 @@ class BaseSolver(object):
                 try:
                     commands = self.solve(g, args.verbosity)
                 except Exception as e:
-                    #traceback.print_exc(e)
+                    if args.verbosity > 0:
+                        traceback.print_exc(e)
                     commands = list('error')
                 solution = {
                     "problemId": problem.id,

@@ -99,6 +99,8 @@ class CleverSolver(solver.BaseSolver):
             # Compute scores for all lockables
             scores = {}
             for unit in lockable:
+                if verbosity == 5:
+                    draw(g, unit)
                 board = game.BoardWithUnit(g.board, unit)
                 filled = 0
                 for row in range(bh):
@@ -136,6 +138,8 @@ class CleverSolver(solver.BaseSolver):
                 m = lock_moves[0]
                 g.move_unit(m)
                 commands.append(cmds[m])
+        if verbosity > 0:
+            print "Final score:", g.score
         return commands
 
 if __name__ == '__main__':
