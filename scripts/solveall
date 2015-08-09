@@ -7,4 +7,4 @@ for fullfile in $DIR/../data/problem_*; do
 	CMD="${CMD} -f $fullfile"
 done
 
-$1 ${CMD}
+$1 -c $2 ${CMD}
