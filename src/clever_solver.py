@@ -46,8 +46,8 @@ class CleverSolver(solver.BaseSolver):
             if g.unit is None:
                 break
             lockable = set()
-            for s in range(5):
-                unit = g.unit.rotate(s)
+            for s in range(6):
+                unit = g.unit.rotate(hx.TURN_CW, s)
                 x, y = unit.west_border, unit.north_border
                 px, py = unit.pivot
                 ox, oy = px-x, py-y
@@ -69,10 +69,17 @@ class CleverSolver(solver.BaseSolver):
                 for row in range(board.height):
                     if board.filled_row(row):
                         filled += 1
-                scores[unit] = g.calc_score(unit, filled)
+                heights = [board.height - board.ceiling[col] for col in range(board.width)]
+                max_height = max(heights)
+                average_height = sum(heights) / float(board.width)
+                score = g.calc_unit_score(unit, filled)
+                avghscore = (board.height - average_height)
+                heightscore = (board.height - max_height)
+                scores[unit] = score + avghscore + heightscore
+
             # Go through them in order of best score
             moves = None
-            for unit, score in sorted(scores.iteritems(), key=operator.itemgetter(1)):
+            for unit, score in reversed(sorted(scores.iteritems(), key=operator.itemgetter(1))):
                 # Calculate the path
                 moves = find_path(g, unit)
                 if moves:

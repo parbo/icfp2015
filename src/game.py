@@ -364,16 +364,16 @@ class Game(object):
                     self.board.clear_row(row)
                 else:
                     row -= 1
-            self.score = self.calc_score(self.unit, ls)
+            self.score = self.score + self.calc_unit_score(self.unit, ls)
             self.ls_old = ls
             self.next_unit()
 
-    def calc_score(self, unit, cleared_lines):
+    def calc_unit_score(self, unit, cleared_lines):
         points = len(unit.members) + 100 * (1 + cleared_lines) * cleared_lines / 2
         line_bonus = 0
         if self.ls_old > 1:
             line_bonus = math.floor((self.ls_old - 1) * points / 10)
-        return self.score + points + line_bonus
+        return points + line_bonus
 
 def jc2t(coord):
     """Convert a json coordinate to a (x, y) tuple."""
