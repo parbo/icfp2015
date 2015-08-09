@@ -47,6 +47,7 @@ class CleverSolver(solver.BaseSolver):
             if g.unit is None:
                 break
             lockable = set()
+            processed = set()
             for s in range(6):
                 unit = g.unit.rotate(hx.TURN_CW, s)
                 x, y = unit.west_border, unit.north_border
@@ -54,7 +55,10 @@ class CleverSolver(solver.BaseSolver):
                 ox, oy = px-x, py-y
                 for row in range(bh):
                     for col in range(bw):
-                        new_unit = unit.to_position((oy + row, ox + col))
+                        new_unit = unit.to_position((ox + col, oy + row))
+                        if new_unit in processed:
+                            continue
+                        processed.add(new_unit)
                         if g.is_unit_valid(new_unit):
                             moves = g.moves_unit(new_unit)
                             if len(moves[game.MOVE_LOCK]) > 0:
