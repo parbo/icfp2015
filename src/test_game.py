@@ -54,6 +54,15 @@ class TestBoard(unittest.TestCase):
         board.clear_row(1)
         self.assertListEqual([1, 2, 2, 4], board.ceiling)
 
+    def test_close_to_filled(self):
+        board = game.Board(5, 5, [(1, 2), (2, 2)])
+        s = board.close_to_filled(1)
+        self.assertSetEqual(set([(0, 1), (1, 1), (2, 1), (3, 2), (0, 2),
+                                 (1, 2), (2, 2), (0, 3), (1, 3), (2, 3)]), s)
+        s = board.close_to_filled(1, False)
+        self.assertSetEqual(set([(0, 1), (1, 1), (2, 1), (3, 2),
+                                 (0, 2), (0, 3), (1, 3), (2, 3)]), s)
+
 class TestUnit(unittest.TestCase):
     def test_to_position(self):
         pivot = (3, 2)

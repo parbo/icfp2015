@@ -25,6 +25,20 @@ MOVE_OK = 0
 MOVE_LOCK = 1
 MOVE_ERROR = 2
 
+class CircleCache(object):
+    def __init__(self):
+        self._cache = {}
+
+    def get(self, center, radius):
+        try:
+            return self._cache[(center, radius)]
+        except KeyError as e:
+            circle = hx.offset_circle(center, radius)
+            self._cache[(center, radius)] = circle
+            return circle
+
+CIRCLES = CircleCache()
+
 class Board(object):
     def __init__(self, width, height, filled=None):
         self.width = width
@@ -55,6 +69,13 @@ class Board(object):
             padding = '' if row % 2 == 0 else ' '
             rows.append(padding + ' '.join(['%d' % c for c in self.cells[row]]))
         return '\n'.join(rows)
+
+    @property
+    def filled_cells(self):
+        for row in range(self.height):
+            for col in range(self.width):
+                if self.filled_cell(col, row):
+                    yield (col, row)
 
     def filled_cell(self, col, row):
         return self.cells[row][col]
@@ -98,6 +119,22 @@ class Board(object):
 
     def create_empty_row(self):
         return self.width * [False]
+
+    def close_to_cell(self, cell, distance):
+        cells = [cell]
+        for radius in range(1, distance + 1):
+            cells.extend(CIRCLES.get(cell, radius))
+        return cells
+
+    def close_to_filled(self, distance, include_filled=True):
+        cells = set()
+        filled = set(self.filled_cells)
+        for cell in filled:
+            cells.update(set(self.close_to_cell(cell, distance)))
+        if include_filled:
+            return cells
+        else:
+            return cells - filled
 
 class Unit(object):
     def __init__(self, pivot, members, radius=None):
