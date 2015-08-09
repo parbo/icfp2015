@@ -140,6 +140,7 @@ class Unit(object):
     def __init__(self, pivot, members, radius=None):
         self.pivot = pivot
         self.members = members
+        self.footprint = tuple(sorted(self.members))
         if radius is None:
             self.radius = max([hx.offset_distance(pivot, member) for member in members])
         else:
@@ -161,6 +162,17 @@ class Unit(object):
         vector = hx.offset_vector(self.pivot, cell)
         members = [hx.offset_translate(member, vector) for member in self.members]
         unit = Unit(cell, members, self.radius)
+        if rotation > 0:
+            unit = unit.rotate(hx.TURN_CW, rotation)
+        elif rotation < 0:
+            unit = unit.rotate(hx.TURN_CCW, -rotation)
+        return unit
+
+    def to_position_nw(self, cell, rotation=0):
+        vector = hx.offset_vector(self.nw_corner, cell)
+        pivot = hx.offset_translate(self.pivot, vector)
+        members = [hx.offset_translate(member, vector) for member in self.members]
+        unit = Unit(pivot, members, self.radius)
         if rotation > 0:
             unit = unit.rotate(hx.TURN_CW, rotation)
         elif rotation < 0:
@@ -205,10 +217,6 @@ class Unit(object):
         return None
 
     @property
-    def footprint(self):
-        return tuple(sorted(self.members))
-
-    @property
     def west_border(self):
         return min([col for col, row in self.members])
 
@@ -223,6 +231,10 @@ class Unit(object):
     @property
     def south_border(self):
         return max([row for col, row in self.members])
+
+    @property
+    def nw_corner(self):
+        return (self.west_border, self.north_border)
 
     @property
     def reach(self):
