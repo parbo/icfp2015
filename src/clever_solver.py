@@ -40,6 +40,7 @@ class CleverSolver(solver.BaseSolver):
                 'SW': 'a',
                 'CW': 'd',
                 'CCW': 'k'}
+        bw, bh = g.size
         while True:
             scores = {}
             moves = []
@@ -51,9 +52,8 @@ class CleverSolver(solver.BaseSolver):
                 x, y = unit.west_border, unit.north_border
                 px, py = unit.pivot
                 ox, oy = px-x, py-y
-                h, w = g.size
-                for row in range(h):
-                    for col in range(w):
+                for row in range(bh):
+                    for col in range(bw):
                         new_unit = unit.to_position((oy + row, ox + col))
                         if g.is_unit_valid(new_unit):
                             moves = g.moves_unit(new_unit)
@@ -66,15 +66,15 @@ class CleverSolver(solver.BaseSolver):
                 board = copy.deepcopy(g.board)
                 board.lock(unit.members)
                 filled = 0
-                for row in range(board.height):
+                for row in range(bh):
                     if board.filled_row(row):
                         filled += 1
-                heights = [board.height - board.ceiling[col] for col in range(board.width)]
+                heights = [bh - board.ceiling[col] for col in range(bw)]
                 max_height = max(heights)
-                average_height = sum(heights) / float(board.width)
+                average_height = sum(heights) / float(bw)
                 score = g.calc_unit_score(unit, filled)
-                avghscore = (board.height - average_height)
-                heightscore = (board.height - max_height)
+                avghscore = (bh - average_height)
+                heightscore = (bh - max_height)
                 scores[unit] = score + avghscore + heightscore
 
             # Go through them in order of best score
