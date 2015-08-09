@@ -48,14 +48,19 @@ class CleverSolver(solver.BaseSolver):
                 break
             lockable = set()
             processed = set()
+            reachable = g.board.reachable_cells(g.unit.members[0])
             for s in range(6):
                 unit = g.unit.rotate(hx.TURN_CW, s)
                 for row in range(bh):
                     for col in range(bw):
+                        if (col, row) not in reachable:
+                            continue
                         new_unit = unit.to_position_nw((col, row))
                         if new_unit in processed:
                             continue
                         processed.add(new_unit)
+                        if not all([m in reachable for m in new_unit.members]):
+                            continue
                         if g.is_unit_valid(new_unit):
                             moves = g.moves_unit(new_unit)
                             if len(moves[game.MOVE_LOCK]) > 0:
