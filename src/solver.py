@@ -25,6 +25,7 @@ class BaseSolver(object):
                 try:
                     commands = self.solve(g)
                 except Exception as e:
+                    #print e
                     commands = list('error')
                 solution = {
                     "problemId": problem.id,

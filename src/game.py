@@ -315,8 +315,8 @@ class Game(object):
             return False
         return True
 
-    def move_result(self, direction):
-        unit = self.unit.action(direction)
+    def move_unit_result(self, unit, direction):
+        unit = unit.action(direction)
         if unit.footprint in self.footprints:
             return MOVE_ERROR
         elif self.is_unit_valid(unit):
@@ -332,6 +332,18 @@ class Game(object):
         for move in MOVES:
             results[self.move_result(move)].append(move)
         return results
+
+    def moves_unit(self, unit):
+         results = {MOVE_OK: [],
+                    MOVE_LOCK: [],
+                    MOVE_ERROR: [],
+         }
+         for move in MOVES:
+             results[self.move_unit_result(unit, move)].append(move)
+         return results
+
+    def moves(self):
+        return self.moves_unit(self.unit)
 
     def move_unit(self, direction):
         if self.unit is None:
@@ -352,13 +364,16 @@ class Game(object):
                     self.board.clear_row(row)
                 else:
                     row -= 1
-            points = len(self.unit.members) + 100 * (1 + ls) * ls / 2
-            line_bonus = 0
-            if self.ls_old > 1:
-                line_bonus = math.floor((self.ls_old - 1) * points / 10)
+            self.score = self.calc_score(self.unit, ls)
             self.ls_old = ls
-            self.score = self.score + points + line_bonus
             self.next_unit()
+
+    def calc_score(self, unit, cleared_lines):
+        points = len(unit.members) + 100 * (1 + cleared_lines) * cleared_lines / 2
+        line_bonus = 0
+        if self.ls_old > 1:
+            line_bonus = math.floor((self.ls_old - 1) * points / 10)
+        return self.score + points + line_bonus
 
 def jc2t(coord):
     """Convert a json coordinate to a (x, y) tuple."""
