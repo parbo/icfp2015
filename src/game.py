@@ -183,6 +183,15 @@ class BoardWithUnit(object):
             return True
         return (col, row) in self.unit.members
 
+    def filled_cells(self):
+        cells = set()
+        for row in range(self.board.height):
+            for col in range(self.board.width):
+                if self.board.cells[row][col]:
+                    cells.add((col, row))
+        set.update(set(self.unit.members))
+        return cells
+
     def filled_row(self, row):
         for col in range(self.board.width):
             if not self.filled_cell(col, row):
@@ -202,7 +211,7 @@ class Unit(object):
         self.pivot = pivot
         self.members = members
         self.footprint = tuple(sorted(self.members) + [pivot])
-        self.hash = hash(self.footprint)
+        self.hash = None
         if radius is None:
             self.radius = max([hx.offset_distance(pivot, member) for member in members])
         else:
@@ -218,6 +227,8 @@ class Unit(object):
         return not self.__eq__(other)
 
     def __hash__(self):
+        if self.hash is None:
+            self.hash = hash(self.footprint)
         return self.hash
 
     def __str__(self):
@@ -269,10 +280,10 @@ class Unit(object):
         return Unit(self.pivot, members, self.radius)
 
     def action(self, cmd):
-        if cmd in TURN:
-            return self.rotate(TURN[cmd])
-        else:
+        if cmd < CMD_CW:
             return self.move(MOVE[cmd])
+        else:
+            return self.rotate(TURN[cmd])
 
     def move_to_reach(self, other):
         for move in MOVES:
@@ -405,15 +416,6 @@ class Game(object):
             return MOVE_OK
         else:
             return MOVE_LOCK
-
-    def moves(self):
-        results = {MOVE_OK: [],
-                   MOVE_LOCK: [],
-                   MOVE_ERROR: [],
-        }
-        for move in MOVES:
-            results[self.move_result(move)].append(move)
-        return results
 
     def moves_unit(self, unit):
          results = {MOVE_OK: [],

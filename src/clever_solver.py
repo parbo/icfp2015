@@ -51,7 +51,115 @@ def find_path(gameobj, goal):
 
 
 class CleverSolver(solver.BaseSolver):
+    def compute_possible(self, g, bw, bh):
+        if g.unit in self.computed_units:
+            processed = self.computed_units[g.unit]
+        else:
+            processed = set()
+            for s in range(6):
+                unit = g.unit.rotate(hx.TURN_CW, s)
+                for row in range(bh):
+                    for col in range(bw):
+                        new_unit = unit.to_position_nw((col, row))
+                        ok = True
+                        for x, y in new_unit.members:
+                            if x < 0 or x >= bw or y < 0 or y >= bh:
+                                ok = False
+                                break
+                        if not ok or new_unit in processed:
+                            continue
+                        processed.add(new_unit)
+            self.computed_units[g.unit] = processed
+        if self.verbosity == 6:
+            print "************************"
+            print "num possible:", len(processed)
+            for u in sorted(processed, key=lambda x: x.pivot):
+                draw(g, u)
+                print "************************"
+        return processed
+
+    def compute_lockable(self, g, possible):
+        lockable = set()
+        for unit in possible:
+            if g.is_unit_valid(unit):
+                moves = g.moves_unit(unit)
+                if len(moves[game.MOVE_LOCK]) > 0:
+                    lockable.add(unit)
+        if self.verbosity > 0:
+            print "lockables:", len(lockable)
+        return lockable
+
+    def compute_scores(self, g, lockable, bw, bh):
+        fbh = float(bh)
+        fbw = float(bw)
+        ftot = float(bw*bh)
+        maxjaggedness = ftot / 2
+        scores = {}
+        for unit in lockable:
+            if self.verbosity == 5:
+                draw(g, unit)
+            board = game.BoardWithUnit(g.board, unit)
+            filled = 0
+            for row in range(bh):
+                if board.filled_row(row):
+                    filled += 1
+            ceiling = board.ceiling
+            heights = [bh - ceiling[col] for col in range(bw)]
+            max_height = max(heights)
+            sum_height = float(sum(heights))
+            average_height = sum_height / fbw
+            jaggedness = 0
+            for col in range(bw - 1):
+                jaggedness += abs(heights[col] - heights[col])
+            last_filled = False
+            changes = 0
+            elems = 0
+            filled_cells = board.filled_cells()
+            for row in range(bh):
+                for col in range(bw):
+                    f = (col, row) in filled_cells
+                    if f:
+                        elems += 1
+                    if f != last_filled:
+                        changes += 1
+                    last_filled = f
+            holes = 0
+            for col in range(bw):
+                for row in range(ceiling[col], bh):
+                    if not (col, row) in filled_cells:
+                        holes += 1
+            felems = float(elems)
+            connectedness = (ftot - changes) / ftot
+            filledness = (sum_height - holes) / felems
+            evenness = (maxjaggedness - jaggedness) / maxjaggedness
+#                score = g.calc_unit_score(unit, filled)
+            avghscore = (bh - average_height) / fbh
+            heightscore = (bh - max_height) / fbh
+            downness = sum([y for x, y in unit.members]) / (len(unit.members) * fbh)
+            total_score = filled + avghscore + heightscore + filledness + evenness + downness + connectedness
+            if self.verbosity > 3:
+                print "score:", total_score, "parts:", filled, avghscore, heightscore, filledness, evenness, downness, connectedness
+            scores[unit] = total_score
+        return scores
+
+    def find_moves(self, g, scores):
+        moves = None
+        for unit, score in reversed(sorted(scores.iteritems(), key=operator.itemgetter(1))):
+            if self.verbosity > 0:
+                print "score:", score
+            # Calculate the path
+            moves = find_path(g, unit)
+            if moves:
+                if self.verbosity > 4:
+                    draw(g, unit)
+                break
+            else:
+                if self.verbosity > 1:
+                    draw(g, unit)
+        return moves
+
     def solve(self, g, verbosity):
+        self.verbosity = verbosity
         commands = []
         cmds = {game.CMD_E: 'b',
                 game.CMD_W: 'p',
@@ -60,11 +168,7 @@ class CleverSolver(solver.BaseSolver):
                 game.CMD_CW: 'd',
                 game.CMD_CCW: 'k'}
         bw, bh = g.size
-        fbh = float(bh)
-        fbw = float(bw)
-        ftot = float(bw*bh)
-        maxjaggedness = ftot / 2
-        computed_units = {}
+        self.computed_units = {}
         while True:
             if verbosity > 0:
                 print g.num_units, g.max_units
@@ -75,103 +179,14 @@ class CleverSolver(solver.BaseSolver):
             if g.unit is None:
                 break
             # Compute possible units
-            if g.unit in computed_units:
-                processed = computed_units[g.unit]
-            else:
-                processed = set()
-                for s in range(6):
-                    unit = g.unit.rotate(hx.TURN_CW, s)
-                    for row in range(bh):
-                        for col in range(bw):
-                            new_unit = unit.to_position_nw((col, row))
-                            ok = True
-                            for x, y in new_unit.members:
-                                if x < 0 or x >= bw or y < 0 or y >= bh:
-                                    ok = False
-                                    break
-                            if not ok or new_unit in processed:
-                                continue
-                            processed.add(new_unit)
-                computed_units[g.unit] = processed
-            if verbosity == 6:
-                print "************************"
-                print "num possible:", len(processed)
-                for u in sorted(processed, key=lambda x: x.pivot):
-                    draw(g, u)
-                    print "************************"
+            possible = self.compute_possible(g, bw, bh)
             # Compute lockable units
-            lockable = set()
-            #reachable = g.board.reachable_cells(g.unit.members[0])
-            for unit in processed:
-                # if not all([m in reachable for m in unit.members]):
-                #     continue
-                if g.is_unit_valid(unit):
-                    moves = g.moves_unit(unit)
-                    if len(moves[game.MOVE_LOCK]) > 0:
-                        lockable.add(unit)
-            if verbosity > 0:
-                print "lockables:", len(lockable)
+            lockable = self.compute_lockable(g, possible)
             # Compute scores for all lockables
-            scores = {}
-            for unit in lockable:
-                if verbosity == 5:
-                    draw(g, unit)
-                board = game.BoardWithUnit(g.board, unit)
-                filled = 0
-                for row in range(bh):
-                    if board.filled_row(row):
-                        filled += 1
-                ceiling = board.ceiling
-                heights = [bh - ceiling[col] for col in range(bw)]
-                max_height = max(heights)
-                sum_height = float(sum(heights))
-                average_height = sum_height / fbw
-                jaggedness = 0
-                for col in range(bw - 1):
-                    jaggedness += abs(heights[col] - heights[col])
-                holes = 0
-                for col in range(bw):
-                    for row in range(ceiling[col], bh):
-                        if not board.filled_cell(col, row):
-                            holes += 1
-                last_filled = False
-                changes = 0
-                elems = 0
-                for row in range(bh):
-                    for col in range(bw):
-                        f = board.filled_cell(col, row)
-                        if f:
-                            elems += 1
-                        if f != last_filled:
-                            changes += 1
-                        last_filled = f
-                felems = float(elems)
-                connectedness = (ftot - changes) / ftot
-                filledness = (sum_height - holes) / felems
-                evenness = (maxjaggedness - jaggedness) / maxjaggedness
-#                score = g.calc_unit_score(unit, filled)
-                avghscore = (bh - average_height) / fbh
-                heightscore = (bh - max_height) / fbh
-                downness = sum([y for x, y in unit.members]) / (len(unit.members) * fbh)
-                total_score = filled + avghscore + heightscore + filledness + evenness + downness + connectedness
-                if verbosity > 3:
-                    print "score:", total_score, "parts:", filled, avghscore, heightscore, filledness, evenness, downness, connectedness
-                scores[unit] = total_score
-
+            scores = self.compute_scores(g, lockable, bw, bh)
             # Go through them in order of best score
-            moves = None
-            for unit, score in reversed(sorted(scores.iteritems(), key=operator.itemgetter(1))):
-                if verbosity > 0:
-                    print "score:", score
-                # Calculate the path
-                moves = find_path(g, unit)
-                if moves:
-                    if verbosity > 4:
-                        draw(g, unit)
-                    break
-                else:
-                    if verbosity > 1:
-                        draw(g, unit)
+            moves = self.find_moves(g, scores)
+            # Do the moves
             if not moves:
                 break
             if verbosity > 2:
