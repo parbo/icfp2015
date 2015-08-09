@@ -7,12 +7,12 @@ import solver
 class RandomSolver(solver.BaseSolver):
     def solve(self, g, verbosity):
         commands = []
-        cmds = {'E': 'b',
-                'W': 'p',
-                'SE': 'l',
-                'SW': 'a',
-                'CW': 'd',
-                'CCW': 'k'}
+        cmds = {game.CMD_E: 'b',
+                game.CMD_W: 'p',
+                game.CMD_SE: 'l',
+                game.CMD_SW: 'a',
+                game.CMD_CW: 'd',
+                game.CMD_CCW: 'k'}
         while True:
             moves = g.moves()
             non_lock = moves[game.MOVE_OK]
