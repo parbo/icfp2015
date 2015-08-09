@@ -66,14 +66,13 @@ class CleverSolver(solver.BaseSolver):
             # Compute scores for all lockables
             scores = {}
             for unit in lockable:
-                # There should be a cheaper way to calculate this
-                board = copy.deepcopy(g.board)
-                board.lock(unit.members)
+                board = game.BoardWithUnit(g.board, unit)
                 filled = 0
                 for row in range(bh):
                     if board.filled_row(row):
                         filled += 1
-                heights = [bh - board.ceiling[col] for col in range(bw)]
+                ceiling = board.ceiling
+                heights = [bh - ceiling[col] for col in range(bw)]
                 max_height = max(heights)
                 average_height = sum(heights) / float(bw)
                 score = g.calc_unit_score(unit, filled)

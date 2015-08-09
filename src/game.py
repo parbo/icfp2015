@@ -136,6 +136,30 @@ class Board(object):
         else:
             return cells - filled
 
+class BoardWithUnit(object):
+    def __init__(self, board, unit):
+        self.board = board
+        self.unit = unit
+
+    def filled_cell(self, col, row):
+        if self.board.filled_cell(col, row):
+            return True
+        return (col, row) in self.unit.members
+
+    def filled_row(self, row):
+        for col in range(self.board.width):
+            if not self.filled_cell(col, row):
+                return False
+        return True
+
+    @property
+    def ceiling(self):
+        w = self.board.width
+        unit_ceiling = w * [self.board.height]
+        for col, row in self.unit.members:
+            unit_ceiling[col] = min(unit_ceiling[col], row)
+        return [min(unit_ceiling[col], self.board.ceiling[col]) for col in range(w)]
+
 class Unit(object):
     def __init__(self, pivot, members, radius=None):
         self.pivot = pivot
