@@ -13,7 +13,7 @@ def find_path(game, goal):
     def nf(g):
         def neighbours(u):
             nb = []
-            for d in ["E", "W", "SE", "SW", "CW", "CCW"]:
+            for d in ["SE", "SW", "E", "W", "CW", "CCW"]:
                 new_u = u.action(d)
                 col, row = new_u.pivot
                 if game.is_unit_valid(new_u):
@@ -50,12 +50,9 @@ class CleverSolver(solver.BaseSolver):
             processed = set()
             for s in range(6):
                 unit = g.unit.rotate(hx.TURN_CW, s)
-                x, y = unit.west_border, unit.north_border
-                px, py = unit.pivot
-                ox, oy = px-x, py-y
                 for row in range(bh):
                     for col in range(bw):
-                        new_unit = unit.to_position((ox + col, oy + row))
+                        new_unit = unit.to_position_nw((col, row))
                         if new_unit in processed:
                             continue
                         processed.add(new_unit)
