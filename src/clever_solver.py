@@ -41,30 +41,41 @@ class CleverSolver(solver.BaseSolver):
                 game.CMD_CW: 'd',
                 game.CMD_CCW: 'k'}
         bw, bh = g.size
+        computed_units = {}
         while True:
+            #print g.num_units, g.max_units
             scores = {}
             moves = []
             if g.unit is None:
                 break
+            # Compute possible units
+            if g.unit in computed_units:
+                processed = computed_units[g.unit]
+            else:
+                processed = {}
+                for s in range(6):
+                    unit = g.unit.rotate(hx.TURN_CW, s)
+                    for row in range(bh):
+                        for col in range(bw):
+                            new_unit = unit.to_position_nw((col, row))
+                            if new_unit in processed:
+                                continue
+                            processed[(col, row)] = new_unit
+                computed_units[g.unit] = processed
+            # Compute lockable units
             lockable = set()
-            processed = set()
             reachable = g.board.reachable_cells(g.unit.members[0])
-            for s in range(6):
-                unit = g.unit.rotate(hx.TURN_CW, s)
-                for row in range(bh):
-                    for col in range(bw):
-                        if (col, row) not in reachable:
-                            continue
-                        new_unit = unit.to_position_nw((col, row))
-                        if new_unit in processed:
-                            continue
-                        processed.add(new_unit)
-                        if not all([m in reachable for m in new_unit.members]):
-                            continue
-                        if g.is_unit_valid(new_unit):
-                            moves = g.moves_unit(new_unit)
-                            if len(moves[game.MOVE_LOCK]) > 0:
-                                lockable.add(new_unit)
+            for pos, unit in processed.items():
+                col, row = pos
+                if (col, row) not in reachable:
+                    continue
+                if not all([m in reachable for m in unit.members]):
+                    continue
+                if g.is_unit_valid(unit):
+                    moves = g.moves_unit(unit)
+                    if len(moves[game.MOVE_LOCK]) > 0:
+                        lockable.add(unit)
+            print "lockables:", len(lockable)
             # Compute scores for all lockables
             scores = {}
             for unit in lockable:
@@ -85,6 +96,7 @@ class CleverSolver(solver.BaseSolver):
             # Go through them in order of best score
             moves = None
             for unit, score in reversed(sorted(scores.iteritems(), key=operator.itemgetter(1))):
+                #print "score:", score
                 # Calculate the path
                 moves = find_path(g, unit)
                 if moves:
