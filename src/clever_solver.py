@@ -15,9 +15,10 @@ def draw(g, unit):
         for m in unit.members:
             col, row = m
             rows[row][col] = '|@'
-    for m in g.unit.members:
-        col, row = m
-        rows[row][col] = '|s'
+    if g.unit:
+        for m in g.unit.members:
+            col, row = m
+            rows[row][col] = '|s'
     for rowix, row in enumerate(rows):
         padding = '' if rowix % 2 == 0 else ' '
         print padding + ''.join(row)
