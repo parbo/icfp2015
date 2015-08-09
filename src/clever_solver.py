@@ -171,12 +171,13 @@ class CleverSolver(solver.BaseSolver):
             for m in moves:
                 g.move_unit(m)
                 commands.append(cmds[m])
-            # lock unit
-            lock_moves = g.moves()[game.MOVE_LOCK]
-            if lock_moves:
-                m = lock_moves[0]
-                g.move_unit(m)
-                commands.append(cmds[m])
+            # lock unit if necessary
+            if g.unit:
+                lock_moves = g.moves()[game.MOVE_LOCK]
+                if lock_moves:
+                    m = lock_moves[0]
+                    g.move_unit(m)
+                    commands.append(cmds[m])
         if verbosity > 0:
             print "Final score:", g.score
         return commands

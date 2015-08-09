@@ -21,7 +21,7 @@ class BaseSolver(object):
         except Exception as e:
             if verbosity > 0:
                 traceback.print_exc(e)
-                commands = list('error')
+            commands = list('error')
         solution = {
             "problemId": problem.id,
             "seed": seed,
