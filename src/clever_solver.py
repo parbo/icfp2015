@@ -7,6 +7,23 @@ import hx
 import operator
 import solver
 
+DEBUG = False
+
+def draw(g, unit):
+    rows = []
+    for row in range(g.board.height):
+        rows.append(['|*' if c else '| ' for c in g.board.cells[row]])
+    if unit:
+        for m in unit.members:
+            col, row = m
+            rows[row][col] = '|@'
+    for m in g.unit.members:
+        col, row = m
+        rows[row][col] = '|s'
+    for rowix, row in enumerate(rows):
+        padding = '' if rowix % 2 == 0 else ' '
+        print padding + ''.join(row)
+
 def find_path(gameobj, goal):
     def g(n1, n2):
         return 1
@@ -43,7 +60,9 @@ class CleverSolver(solver.BaseSolver):
         bw, bh = g.size
         computed_units = {}
         while True:
-            #print g.num_units, g.max_units
+            if DEBUG:
+                draw(g, None)
+                print g.num_units, g.max_units
             scores = {}
             moves = []
             if g.unit is None:
@@ -75,7 +94,8 @@ class CleverSolver(solver.BaseSolver):
                     moves = g.moves_unit(unit)
                     if len(moves[game.MOVE_LOCK]) > 0:
                         lockable.add(unit)
-            print "lockables:", len(lockable)
+            if DEBUG:
+                print "lockables:", len(lockable)
             # Compute scores for all lockables
             scores = {}
             for unit in lockable:
@@ -96,11 +116,15 @@ class CleverSolver(solver.BaseSolver):
             # Go through them in order of best score
             moves = None
             for unit, score in reversed(sorted(scores.iteritems(), key=operator.itemgetter(1))):
-                #print "score:", score
+                if DEBUG:
+                    print "score:", score
                 # Calculate the path
                 moves = find_path(g, unit)
                 if moves:
                     break
+                else:
+                    if DEBUG:
+                        draw(g, unit)
             if not moves:
                 break
             for m in moves:
