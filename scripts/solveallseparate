@@ -7,5 +7,5 @@ for fullfile in $DIR/../data/problem_*; do
     filename=$(basename "$fullfile")
     filename="${filename%.*}"
     echo $filename
-    time $1 -c $2 -f "$fullfile" > "$DIR/../solutions/${filename}_solution.json"
+    time $1 -c $2 -p "ei!" -f "$fullfile" > "$DIR/../solutions/${filename}_solution.json"
 done

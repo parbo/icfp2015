@@ -156,9 +156,10 @@ class Board(object):
         col, row = cell
         return (0 <= col < self.width) and (0 <= row < self.height)
 
-    def reachable_cells(self, from_cell):
+    def reachable_cells(self, from_cell, distance):
         reached = set([])
         q = [from_cell]
+        c2f = self.close_to_filled(distance)
         while q:
             cell = q.pop()
             reached.add(cell)
@@ -166,7 +167,7 @@ class Board(object):
             for n in neighbors:
                 if not self.is_within_board(n):
                     continue
-                if self.filled_cell(*n):
+                if n in c2f:
                     continue
                 if n in reached:
                     continue
@@ -212,7 +213,7 @@ class Unit(object):
         return cell in self.members
 
     def __eq__(self, other):
-        return self.footprint == other.footprint
+        return self.pivot == other.pivot and self.footprint == other.footprint
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -267,7 +268,7 @@ class Unit(object):
     def rotate(self, direction, steps=1):
         members = self.members
         for step in range(steps):
-            members = [hx.offset_rotate(self.pivot, member, direction) for member in members]
+            members = hx.offset_rotate_list(self.pivot, members, direction)
         return Unit(self.pivot, members, self.radius)
 
     def action(self, cmd):

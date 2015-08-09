@@ -4,14 +4,20 @@ import astar
 import copy
 import game
 import hx
+import itertools
+import math
 import operator
 import solver
 
-def draw(g, unit):
+def draw(g, unit, reachable=None):
     rows = []
     print "_"*g.board.width*2
     for row in range(g.board.height):
         rows.append(['|*' if c else '| ' for c in g.board.cells[row]])
+    if reachable:
+        for r in reachable:
+            col, row = r
+            rows[row][col] = '|.'
     if unit:
         for m in unit.members:
             col, row = m
@@ -110,10 +116,16 @@ class CleverSolver(solver.BaseSolver):
             jaggedness = 0
             for col in range(bw - 1):
                 jaggedness += abs(heights[col] - heights[col])
-            last_filled = False
-            changes = 0
             elems = 0
             filled_cells_unit = set(filled_cells)
+            last_filled = False
+            changes_before = 0
+            for row in range(bh):
+                for col in range(bw):
+                    f = (col, row) in filled_cells_unit
+                    if f != last_filled:
+                        changes_before += 1
+                    last_filled = f
             filled_cells_unit.update(set(unit.members))
             holes = 0
             for col in range(bw):
@@ -124,20 +136,27 @@ class CleverSolver(solver.BaseSolver):
                         elems += 1
                     elif row >= ceil:
                         holes += 1
+            last_filled = False
+            changes = 0
+            for row in range(bh):
+                for col in range(bw):
+                    f = (col, row) in filled_cells_unit
                     if f != last_filled:
                         changes += 1
                     last_filled = f
             felems = float(elems)
-            connectedness = (ftot - changes) / ftot
+            # We want to reduce changes
+            connectedness = (changes_before - changes)
             filledness = (sum_height - holes) / felems
             evenness = (maxjaggedness - jaggedness) / maxjaggedness
 #                score = g.calc_unit_score(unit, filled)
             avghscore = (bh - average_height) / fbh
             heightscore = (bh - max_height) / fbh
             downness = sum([y for x, y in unit.members]) / (len(unit.members) * fbh)
-            total_score = filled + avghscore + heightscore + filledness + evenness + downness + connectedness
+#            reachability = sum([1 for m in unit.members if m in self.reachable]) / float(len(unit.members))
+            total_score = 10 * filled + avghscore + heightscore + filledness + evenness + downness + connectedness #+ reachability
             if self.verbosity > 3:
-                print "score:", total_score, "parts:", filled, avghscore, heightscore, filledness, evenness, downness, connectedness
+                print "score:", total_score, "parts:", filled, avghscore, heightscore, filledness, evenness, downness, connectedness #, reachability
             scores[unit] = total_score
         return scores
 
@@ -146,13 +165,19 @@ class CleverSolver(solver.BaseSolver):
         for unit, score in reversed(sorted(scores.iteritems(), key=operator.itemgetter(1))):
             if self.verbosity > 0:
                 print "score:", score
+            # Skip known unreachable
+            if (g.unit, unit) in self.unreachable:
+                if self.verbosity > 1:
+                    print "skipping unreachable!"
+                continue
             # Calculate the path
             moves = find_path(g, unit)
             if moves:
-                if self.verbosity > 4:
+                if self.verbosity > 1:
                     draw(g, unit)
                 break
             else:
+                self.unreachable.add((g.unit, unit))
                 if self.verbosity > 1:
                     draw(g, unit)
         return moves
@@ -168,6 +193,7 @@ class CleverSolver(solver.BaseSolver):
                 game.CMD_CCW: 'k'}
         bw, bh = g.size
         self.computed_units = {}
+        self.unreachable = set()
         while True:
             if verbosity > 0:
                 print g.num_units, g.max_units
@@ -181,10 +207,18 @@ class CleverSolver(solver.BaseSolver):
             possible = self.compute_possible(g, bw, bh)
             # Compute lockable units
             lockable = self.compute_lockable(g, possible)
-            # Compute scores for all lockables
-            scores = self.compute_scores(g, lockable, bw, bh)
-            # Go through them in order of best score
-            moves = self.find_moves(g, scores)
+            # Compute scores for all lockables, 100 at a time
+            # Take from bottom up.
+            # Reachability is used when computing scores
+            # self.reachable = g.board.reachable_cells(g.unit.members[0], 1)
+            sorted_lockable = list(reversed(sorted(lockable, key=lambda x: x.north_border)))
+            moves = None
+            for ix in range(0, len(sorted_lockable), 100):
+                scores = self.compute_scores(g, sorted_lockable[ix:ix+100], bw, bh)
+                # Go through them in order of best score
+                moves = self.find_moves(g, scores)
+                if moves:
+                    break
             # Do the moves
             if not moves:
                 break
@@ -192,8 +226,10 @@ class CleverSolver(solver.BaseSolver):
                 print moves
             for m in moves:
                 g.move_unit(m)
+                if g.ls_old > 0:
+                    self.unreachable = set()
                 if verbosity > 6:
-                    draw(g, unit)
+                    draw(g, None)
                 commands.append(cmds[m])
             # lock unit if necessary
             if g.unit:
@@ -201,6 +237,8 @@ class CleverSolver(solver.BaseSolver):
                 if lock_moves:
                     m = lock_moves[0]
                     g.move_unit(m)
+                    if g.ls_old > 0:
+                        self.unreachable = set()
                     commands.append(cmds[m])
         if verbosity > 0:
             print "Final score:", g.score

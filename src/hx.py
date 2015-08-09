@@ -77,9 +77,6 @@ def hex_scale(scale, h):
 def distance(h0, h1):
     return (abs(h1.x - h0.x) + abs(h1.y - h0.y) + abs(h1.z - h0.z)) / 2
 
-def move(h, direction):
-    return hex_add(h, direction)
-
 def rotate(pivot, h, direction):
     vect = hex_sub(h, pivot)
     if direction == TURN_CW:
@@ -118,12 +115,16 @@ def offset_distance(c0, c1):
 
 def offset_move(cell, direction):
     h = to_hex(*cell)
-    return to_offset(move(h, direction))
+    return to_offset(hex_add(h, direction))
 
 def offset_rotate(pivot, cell, direction):
     hp = to_hex(*pivot)
     h = to_hex(*cell)
     return to_offset(rotate(hp, h, direction))
+
+def offset_rotate_list(pivot, cells, direction):
+    hp = to_hex(*pivot)
+    return [to_offset(rotate(hp, to_hex(*cell), direction)) for cell in cells]
 
 def offset_translate(origin, vector):
     h = to_hex(*origin)
