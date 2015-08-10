@@ -13,7 +13,6 @@ def test_hex():
                 col, row = hx.to_offset(new_n)
                 if 0 <= col < 10 and 0 <= row < 10:
                     nb.append(new_n)
-            print hx.to_offset(n), [hx.to_offset(x) for x in nb]
             return nb
         return neighbours
     def hf(goal):
@@ -26,17 +25,18 @@ def test_hex():
     print f, [hx.to_offset(x) for x in p]
 
 def test_units():
+#    moves = [game.CMD_W, game.CMD_E, game.CMD_SE, game.CMD_SW, game.CMD_CW, game.CMD_CCW]
+    moves = [game.CMD_W, game.CMD_E, game.CMD_NE, game.CMD_NW, game.CMD_CW, game.CMD_CCW]
     def g(n1, n2):
         return 1
     def nf(g):
         def neighbours(u):
             nb = []
-            for d in ["E", "W", "SE", "SW", "CW", "CCW"]:
+            for d in moves:
                 new_u = u.action(d)
                 col, row = new_u.pivot
                 if 0 <= col < 10 and 0 <= row < 10:
                     nb.append(new_u)
-            print u.pivot, u.members, [(x.pivot, x.members) for x in nb]
             return nb
         return neighbours
     def hf(goal):
@@ -45,10 +45,12 @@ def test_units():
             nc, nr = n.pivot
             return hx.distance(hx.to_hex(gc, gr), hx.to_hex(nc, nr))
         return h
-    start = game.Unit((0, 0), [(0, 0), (1, 0)])
-    goal = game.Unit((1, 6), [(1, 6), (1, 7)])
+    # start = game.Unit((0, 0), [(0, 0), (1, 0)])
+    # goal = game.Unit((1, 6), [(1, 6), (1, 7)])
+    goal = game.Unit.get_or_create_unit((0, 0), [(0, 0), (1, 0)])
+    start = game.Unit.get_or_create_unit((1, 6), [(1, 6), (1, 7)])
     f, p = astar.astar(start, goal, g, hf(goal), nf(None))
-    moves = [p[i].move_to_reach(p[i + 1]) for i in range(len(p) - 1)]
+    moves = [p[i].move_to_reach(p[i + 1], moves) for i in range(len(p) - 1)]
     print f, moves
 
 if __name__=="__main__":
