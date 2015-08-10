@@ -43,7 +43,7 @@ def test_units():
         def h(n):
             gc, gr = goal.pivot
             nc, nr = n.pivot
-            return hx.distance(hx.to_hex(gc, gr), hx.to_hex(nc, nr))
+            return hx.distance(hx.to_hex(gc, gr), hx.to_hex(nc, nr)) + goal.abs_rotation_distance(n)
         return h
     # start = game.Unit((0, 0), [(0, 0), (1, 0)])
     # goal = game.Unit((1, 6), [(1, 6), (1, 7)])

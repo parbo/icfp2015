@@ -444,22 +444,26 @@ class Game(object):
              results[self.move_unit_result(unit, move)].append(move)
          return results
 
-    def move_unit_result_wu(self, unit, direction):
+    def move_unit_result_wu(self, unit, direction, footprints):
         unit = unit.action(direction)
-        if unit.footprint in self.footprints:
+        if unit.footprint in footprints:
             return (MOVE_ERROR, unit)
         elif self.is_unit_valid(unit):
             return (MOVE_OK, unit)
         else:
             return (MOVE_LOCK, unit)
 
-    def moves_unit_wu(self, unit, moves):
+    def moves_unit_wu(self, unit, moves, allow_move_to_self):
          results = {MOVE_OK: [],
                     MOVE_LOCK: [],
                     MOVE_ERROR: [],
          }
+         if allow_move_to_self:
+             footprints = self.footprints - set([self.unit.footprint])
+         else:
+             footprints = self.footprints
          for move in moves:
-             r, u = self.move_unit_result_wu(unit, move)
+             r, u = self.move_unit_result_wu(unit, move, footprints)
              results[r].append((move, u))
          return results
 
@@ -467,7 +471,7 @@ class Game(object):
         return any((x == MOVE_LOCK for x in (self.move_unit_result(unit, move) for move in MOVES)))
 
     def moves(self):
-        return self.moves_unit(self.unit)
+        return self.moves_unit(self.unit, MOVES)
 
     def move_unit(self, direction):
         if self.unit is None:

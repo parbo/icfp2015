@@ -37,7 +37,7 @@ def find_path(gameobj, goal):
         return 1
     def nf(g):
         def neighbours(u):
-            moves = gameobj.moves_unit_wu(u, backwards_moves)
+            moves = gameobj.moves_unit_wu(u, backwards_moves, True)
             ok_moves = moves[game.MOVE_OK]
             return [new_u for d, new_u in ok_moves]
         return neighbours
@@ -49,12 +49,8 @@ def find_path(gameobj, goal):
         return h
     # Find backwards
     f, p = astar.astar(goal, gameobj.unit, g, hf(gameobj.unit), nf(None))
-    print p
     moves = [p[i].move_to_reach(p[i + 1], backwards_moves) for i in range(len(p) - 1)]
-    print moves
     moves = [game.OPPOSITE[m] for m in reversed(moves)]
-    print moves
-    print
     return moves
 
 
