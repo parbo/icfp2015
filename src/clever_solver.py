@@ -30,12 +30,14 @@ def draw(g, unit, reachable=None):
         padding = '' if rowix % 2 == 0 else ' '
         print padding + ''.join(row)
 
+backwards_moves = [game.CMD_W, game.CMD_E, game.CMD_NE, game.CMD_NW, game.CMD_CW, game.CMD_CCW]
+
 def find_path(gameobj, goal):
     def g(n1, n2):
         return 1
     def nf(g):
         def neighbours(u):
-            moves = gameobj.moves_unit_wu(u)
+            moves = gameobj.moves_unit_wu(u, backwards_moves)
             ok_moves = moves[game.MOVE_OK]
             return [new_u for d, new_u in ok_moves]
         return neighbours
@@ -45,8 +47,14 @@ def find_path(gameobj, goal):
             nc, nr = n.pivot
             return hx.distance(hx.to_hex(gc, gr), hx.to_hex(nc, nr)) + goal.abs_rotation_distance(n)
         return h
-    f, p = astar.astar(gameobj.unit, goal, g, hf(goal), nf(None))
-    moves = [p[i].move_to_reach(p[i + 1]) for i in range(len(p) - 1)]
+    # Find backwards
+    f, p = astar.astar(goal, gameobj.unit, g, hf(gameobj.unit), nf(None))
+    print p
+    moves = [p[i].move_to_reach(p[i + 1], backwards_moves) for i in range(len(p) - 1)]
+    print moves
+    moves = [game.OPPOSITE[m] for m in reversed(moves)]
+    print moves
+    print
     return moves
 
 

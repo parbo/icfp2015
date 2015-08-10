@@ -41,7 +41,7 @@ class CHex(object):
         except ValueError:
             raise AttributeError, name
 
-USE_NAMEDTUPLE = False
+USE_NAMEDTUPLE = True
 if USE_NAMEDTUPLE:
     Hex = collections.namedtuple('Hex', ['x', 'y', 'z'])
 else:

@@ -13,8 +13,10 @@ CMD_E = 0
 CMD_W = 1
 CMD_SE = 2
 CMD_SW = 3
-CMD_CW = 4
-CMD_CCW = 5
+CMD_NE = 4
+CMD_NW = 5
+CMD_CW = 6
+CMD_CCW = 7
 
 CMDS = (
     CMD_E,
@@ -25,6 +27,17 @@ CMDS = (
     CMD_CCW
 )
 
+OPPOSITE = {
+    CMD_E: CMD_W,
+    CMD_W: CMD_E,
+    CMD_SE: CMD_NW,
+    CMD_SW: CMD_NE,
+    CMD_NE: CMD_SW,
+    CMD_NW: CMD_SE,
+    CMD_CW: CMD_CCW,
+    CMD_CCW: CMD_CW
+}
+
 TURN = {CMD_CW: hx.TURN_CW,
         CMD_CCW: hx.TURN_CCW,
 }
@@ -33,9 +46,11 @@ MOVE = {CMD_W: hx.DIRECTION_W,
         CMD_E: hx.DIRECTION_E,
         CMD_SW: hx.DIRECTION_SW,
         CMD_SE: hx.DIRECTION_SE,
+        CMD_NW: hx.DIRECTION_NW,
+        CMD_NE: hx.DIRECTION_NE,
 }
 
-MOVES = TURN.keys() + MOVE.keys()
+MOVES = CMDS
 
 MOVE_OK = 0
 MOVE_LOCK = 1
@@ -297,8 +312,8 @@ class Unit(object):
         Unit.action_cache[(self, cmd)] = unit
         return unit
 
-    def move_to_reach(self, other):
-        for move in MOVES:
+    def move_to_reach(self, other, moves):
+        for move in moves:
             unit = self.action(move)
             if unit == other:
                 return move
@@ -329,17 +344,17 @@ class Unit(object):
     def nw_corner(self):
         return (self.west_border, self.north_border)
 
-    @property
-    def reach(self):
-        """
-        Return a new Unit which contains all cells that can be touched by executing
-        moves on this unit.
-        """
-        touched = set()
-        for move in MOVES:
-            unit = self.action(move)
-            touched.update(set(unit.members))
-        return Unit.get_or_create_unit(self.pivot, list(touched))
+    # @property
+    # def reach(self):
+    #     """
+    #     Return a new Unit which contains all cells that can be touched by executing
+    #     moves on this unit.
+    #     """
+    #     touched = set()
+    #     for move in MOVES:
+    #         unit = self.action(move)
+    #         touched.update(set(unit.members))
+    #     return Unit.get_or_create_unit(self.pivot, list(touched))
 
 def lcg(seed):
     modulus = 2**32
@@ -420,12 +435,12 @@ class Game(object):
         else:
             return MOVE_LOCK
 
-    def moves_unit(self, unit):
+    def moves_unit(self, unit, moves):
          results = {MOVE_OK: [],
                     MOVE_LOCK: [],
                     MOVE_ERROR: [],
          }
-         for move in MOVES:
+         for move in moves:
              results[self.move_unit_result(unit, move)].append(move)
          return results
 
@@ -438,12 +453,12 @@ class Game(object):
         else:
             return (MOVE_LOCK, unit)
 
-    def moves_unit_wu(self, unit):
+    def moves_unit_wu(self, unit, moves):
          results = {MOVE_OK: [],
                     MOVE_LOCK: [],
                     MOVE_ERROR: [],
          }
-         for move in MOVES:
+         for move in moves:
              r, u = self.move_unit_result_wu(unit, move)
              results[r].append((move, u))
          return results
