@@ -199,27 +199,43 @@ class BoardWithUnit(object):
         return [min(unit_ceiling[col], self.board.ceiling[col]) for col in range(w)]
 
 class Unit(object):
+    unit_cache = {}
     action_cache = {}
 
-    def __init__(self, pivot, members):
+    @staticmethod
+    def make_footprint(pivot, members):
+        return tuple(sorted(members) + [pivot])
+
+    @staticmethod
+    def get_or_create_unit(pivot, members):
+        footprint = Unit.make_footprint(pivot, members)
+        try:
+            return Unit.unit_cache[footprint]
+        except KeyError:
+            pass
+        unit = Unit(pivot, members, footprint)
+        Unit.unit_cache[footprint] = unit
+        return unit
+
+    def __init__(self, pivot, members, footprint):
         self.pivot = pivot
         self.members = members
-        self.footprint = tuple(sorted(self.members) + [pivot])
+        self.footprint = footprint
         self.hash = None
 
     def __contains__(self, cell):
         return cell in self.members
 
-    def __eq__(self, other):
-        return  self.footprint == other.footprint
+    # def __eq__(self, other):
+    #     return id(self) == id(other)
 
-    def __ne__(self, other):
-        return not self.__eq__(other)
+    # def __ne__(self, other):
+    #     return not self.__eq__(other)
 
-    def __hash__(self):
-        if self.hash is None:
-            self.hash = hash(self.footprint)
-        return self.hash
+    # def __hash__(self):
+    #     if self.hash is None:
+    #         self.hash = hash(self.footprint)
+    #     return self.hash
 
     def __str__(self):
         return "(%s, %s)"%(self.pivot, self.members)
@@ -227,7 +243,7 @@ class Unit(object):
     def to_position(self, cell, rotation=0):
         vector = hx.offset_vector(self.pivot, cell)
         members = [hx.offset_translate(member, vector) for member in self.members]
-        unit = Unit(cell, members)
+        unit = Unit.get_or_create_unit(cell, members)
         if rotation > 0:
             unit = unit.rotate(hx.TURN_CW, rotation)
         elif rotation < 0:
@@ -238,7 +254,7 @@ class Unit(object):
         vector = hx.offset_vector(self.nw_corner, cell)
         pivot = hx.offset_translate(self.pivot, vector)
         members = [hx.offset_translate(member, vector) for member in self.members]
-        unit = Unit(pivot, members)
+        unit = Unit.get_or_create_unit(pivot, members)
         if rotation > 0:
             unit = unit.rotate(hx.TURN_CW, rotation)
         elif rotation < 0:
@@ -261,13 +277,13 @@ class Unit(object):
     def move(self, direction):
         pivot = hx.offset_move(self.pivot, direction)
         members = [hx.offset_move(member, direction) for member in self.members]
-        return Unit(pivot, members)
+        return Unit.get_or_create_unit(pivot, members)
 
     def rotate(self, direction, steps=1):
         members = self.members
         for step in range(steps):
             members = hx.offset_rotate_list(self.pivot, members, direction)
-        return Unit(self.pivot, members)
+        return Unit.get_or_create_unit(self.pivot, members)
 
     def action(self, cmd):
         try:
@@ -323,7 +339,7 @@ class Unit(object):
         for move in MOVES:
             unit = self.action(move)
             touched.update(set(unit.members))
-        return Unit(self.pivot, list(touched))
+        return Unit.get_or_create_unit(self.pivot, list(touched))
 
 def lcg(seed):
     modulus = 2**32
@@ -392,17 +408,8 @@ class Game(object):
 
     def is_valid_pos(self, pos):
         x, y = pos
-        if x < 0:
-            return False
-        elif x >= self.board.width:
-            return False
-        if y < 0:
-            return False
-        elif y >= self.board.height:
-            return False
-        elif self.board.filled_cell(x, y):
-            return False
-        return True
+        b = self.board
+        return 0 <= x < b.width and 0 <= y < b.height and not b.filled_cell(x, y)
 
     def move_unit_result(self, unit, direction):
         unit = unit.action(direction)
@@ -488,7 +495,7 @@ class Problem(object):
         self.width = problem["width"]
         self.source_seeds = problem["sourceSeeds"]
         self.source_length = problem["sourceLength"]
-        self.units = [Unit(jc2t(u["pivot"]), [jc2t(m) for m in u["members"]]) for u in problem["units"]]
+        self.units = [Unit.get_or_create_unit(jc2t(u["pivot"]), [jc2t(m) for m in u["members"]]) for u in problem["units"]]
         self.filled = [jc2t(f) for f in problem["filled"]]
 
     def make_game(self, seed_index):
