@@ -85,6 +85,8 @@ def rotate(pivot, h, direction):
         return hex_add(pivot, Hex(-vect.y, -vect.z, -vect.x))
 
 def _normalize(vect):
+    if vect.x == 0 and vect.y == 0 and vect.z == 0:
+        return vect
     length = math.sqrt(vect.x ** 2 + vect.y ** 2 + vect.z ** 2)
     return Hex(vect.x / length, vect.y / length, vect.z / length)
 

@@ -43,7 +43,7 @@ def find_path(gameobj, goal):
         def h(n):
             gc, gr = goal.pivot
             nc, nr = n.pivot
-            return hx.distance(hx.to_hex(gc, gr), hx.to_hex(nc, nr))
+            return hx.distance(hx.to_hex(gc, gr), hx.to_hex(nc, nr)) + goal.abs_rotation_distance(n)
         return h
     f, p = astar.astar(gameobj.unit, goal, g, hf(goal), nf(None))
     moves = [p[i].move_to_reach(p[i + 1]) for i in range(len(p) - 1)]
