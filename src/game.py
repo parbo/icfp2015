@@ -199,21 +199,19 @@ class BoardWithUnit(object):
         return [min(unit_ceiling[col], self.board.ceiling[col]) for col in range(w)]
 
 class Unit(object):
-    def __init__(self, pivot, members, radius=None):
+    action_cache = {}
+
+    def __init__(self, pivot, members):
         self.pivot = pivot
         self.members = members
         self.footprint = tuple(sorted(self.members) + [pivot])
         self.hash = None
-        if radius is None:
-            self.radius = max([hx.offset_distance(pivot, member) for member in members])
-        else:
-            self.radius = radius
 
     def __contains__(self, cell):
         return cell in self.members
 
     def __eq__(self, other):
-        return self.pivot == other.pivot and self.footprint == other.footprint
+        return  self.footprint == other.footprint
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -229,7 +227,7 @@ class Unit(object):
     def to_position(self, cell, rotation=0):
         vector = hx.offset_vector(self.pivot, cell)
         members = [hx.offset_translate(member, vector) for member in self.members]
-        unit = Unit(cell, members, self.radius)
+        unit = Unit(cell, members)
         if rotation > 0:
             unit = unit.rotate(hx.TURN_CW, rotation)
         elif rotation < 0:
@@ -240,7 +238,7 @@ class Unit(object):
         vector = hx.offset_vector(self.nw_corner, cell)
         pivot = hx.offset_translate(self.pivot, vector)
         members = [hx.offset_translate(member, vector) for member in self.members]
-        unit = Unit(pivot, members, self.radius)
+        unit = Unit(pivot, members)
         if rotation > 0:
             unit = unit.rotate(hx.TURN_CW, rotation)
         elif rotation < 0:
@@ -263,19 +261,25 @@ class Unit(object):
     def move(self, direction):
         pivot = hx.offset_move(self.pivot, direction)
         members = [hx.offset_move(member, direction) for member in self.members]
-        return Unit(pivot, members, self.radius)
+        return Unit(pivot, members)
 
     def rotate(self, direction, steps=1):
         members = self.members
         for step in range(steps):
             members = hx.offset_rotate_list(self.pivot, members, direction)
-        return Unit(self.pivot, members, self.radius)
+        return Unit(self.pivot, members)
 
     def action(self, cmd):
+        try:
+            return Unit.action_cache[(self, cmd)]
+        except KeyError:
+            pass
         if cmd < CMD_CW:
-            return self.move(MOVE[cmd])
+            unit = self.move(MOVE[cmd])
         else:
-            return self.rotate(TURN[cmd])
+            unit = self.rotate(TURN[cmd])
+        Unit.action_cache[(self, cmd)] = unit
+        return unit
 
     def move_to_reach(self, other):
         for move in MOVES:
